@@ -775,7 +775,7 @@ export function canManageProject(ctx: PermissionContext): boolean {
 - [ ] **Step 4: Run the tests and confirm they pass**
 
 Run: `npx vitest run server/src/permissions`
-Expected: PASS, 25 tests.
+Expected: PASS, 24 tests.
 
 - [ ] **Step 5: Commit**
 
