@@ -2676,7 +2676,7 @@ describe('api', () => {
 
   it('throws an ApiError carrying the server code and status', async () => {
     stubFetch(401, { error: { code: 'NOT_AUTHENTICATED', message: 'Sign in.' } })
-    const err = await api('/me').catch(e => e)
+    const err = (await api('/me').catch(e => e)) as ApiError
     expect(err).toBeInstanceOf(ApiError)
     expect(err.code).toBe('NOT_AUTHENTICATED')
     expect(err.status).toBe(401)
@@ -2685,7 +2685,7 @@ describe('api', () => {
 
   it('still throws a usable error when the body is not the expected shape', async () => {
     stubFetch(500, 'gateway exploded')
-    const err = await api('/me').catch(e => e)
+    const err = (await api('/me').catch(e => e)) as ApiError
     expect(err).toBeInstanceOf(ApiError)
     expect(err.code).toBe('UNKNOWN')
     expect(err.status).toBe(500)
