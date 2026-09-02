@@ -7,7 +7,13 @@ const EMAIL = `smoke-${stamp}@example.com`
 const KEY = `SM${String(stamp).slice(-4)}`
 
 test('full ticket lifecycle: sign up, project, create, move, edit, delete', async ({ page }) => {
-  await page.goto('/signup')
+  // Land where a real visitor lands, and click through. Navigating straight
+  // to /signup by URL is what hid the missing link in the first place.
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/login$/)
+  await page.getByRole('link', { name: 'Create an account' }).click()
+  await expect(page.getByRole('heading', { name: 'Create your Mira account' }))
+    .toBeVisible()
 
   await page.getByLabel('Name').fill('Smoke Test')
   await page.getByLabel('Email').fill(EMAIL)

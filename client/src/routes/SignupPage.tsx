@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { signupSchema } from '@mira/shared'
 import { endpoints } from '../api/endpoints.js'
 import { ApiError } from '../api/client.js'
@@ -53,6 +53,7 @@ export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
       <button type="submit" disabled={busy}>
         {busy ? 'Creating...' : 'Create account'}
       </button>
+      <p>Already have an account? <Link to="/login">Sign in</Link></p>
     </form>
   )
 }
