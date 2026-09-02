@@ -69,15 +69,23 @@ export async function createProject(
   workspaceId: string,
   input: CreateProjectInput,
 ): Promise<ProjectSummary> {
-  const key = await nextProjectKey(db, workspaceId, input.name)
+  const row = await db.transaction().execute(async trx => {
+    await trx.selectFrom('workspaces')
+      .select('id')
+      .where('id', '=', workspaceId)
+      .forUpdate()
+      .executeTakeFirstOrThrow()
 
-  const row = await db.insertInto('projects').values({
-    workspace_id: workspaceId,
-    name: input.name,
-    key,
-    description: input.description ?? null,
-  }).returning(['id', 'name', 'key', 'description', 'workspace_id'])
-    .executeTakeFirstOrThrow()
+    const key = await nextProjectKey(trx, workspaceId, input.name)
+
+    return trx.insertInto('projects').values({
+      workspace_id: workspaceId,
+      name: input.name,
+      key,
+      description: input.description ?? null,
+    }).returning(['id', 'name', 'key', 'description', 'workspace_id'])
+      .executeTakeFirstOrThrow()
+  })
 
   return {
     id: row.id, name: row.name, key: row.key,

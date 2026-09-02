@@ -54,6 +54,17 @@ describe('POST /api/projects', () => {
     expect(res.body.key).toBe('MIR2')
   })
 
+  it('does not duplicate generated keys under concurrent creation', async () => {
+    const agent = await signedInAgent()
+    const results = await Promise.all(Array.from({ length: 8 }, () =>
+      agent.post('/api/projects').send({ name: 'Mira' })))
+
+    expect(results.map(res => res.status)).toEqual(Array(8).fill(201))
+    expect(results.map(res => res.body.key).sort()).toEqual([
+      'MIR', 'MIR2', 'MIR3', 'MIR4', 'MIR5', 'MIR6', 'MIR7', 'MIR8',
+    ])
+  })
+
   it('requires authentication', async () => {
     const res = await request(app).post('/api/projects').send({ name: 'X' })
     expect(res.status).toBe(401)
