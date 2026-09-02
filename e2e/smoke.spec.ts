@@ -20,13 +20,13 @@ test('full ticket lifecycle: sign up, project, create, move, edit, delete', asyn
   await page.getByLabel('Password').fill('correct horse battery')
   await page.getByRole('button', { name: 'Create account' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Mira', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Personal', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Collaborations', exact: true })).toBeVisible()
 
   await page.getByLabel('Name').fill('Smoke Project')
   await page.getByLabel('Key').fill(KEY)
-  await page.getByRole('button', { name: 'Create project' }).click()
-
-  await page.getByRole('link', { name: `${KEY} - Smoke Project` }).click()
+  await page.getByRole('button', { name: 'Create', exact: true }).click()
 
   await page.getByLabel('Title').fill('Prove the skeleton walks')
   await page.getByRole('button', { name: 'Add ticket' }).click()

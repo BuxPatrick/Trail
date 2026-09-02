@@ -20,6 +20,12 @@ export type TicketView = {
   createdAt: Date
 }
 
+export type MyTaskView = TicketView & {
+  projectId: string
+  projectName: string
+  projectKey: string
+}
+
 const NOT_FOUND = () => new AppError('TICKET_NOT_FOUND', 'No such ticket.', 404)
 const PROJECT_NOT_FOUND = () =>
   new AppError('PROJECT_NOT_FOUND', 'No such project.', 404)
@@ -41,6 +47,19 @@ const toView = (r: Row, projectKey: string): TicketView => ({
   assigneeId: r.assignee_id,
   reporterId: r.reporter_id,
   createdAt: r.created_at,
+})
+
+type MyTaskRow = Row & {
+  project_id: string
+  project_name: string
+  project_key: string
+}
+
+const toTaskView = (r: MyTaskRow): MyTaskView => ({
+  ...toView(r, r.project_key),
+  projectId: r.project_id,
+  projectName: r.project_name,
+  projectKey: r.project_key,
 })
 
 export async function createTicket(
@@ -105,6 +124,44 @@ export async function listTickets(
     .execute()
 
   return rows.map(r => toView(r as Row, project.key))
+}
+
+export async function listMyTasks(
+  db: Kysely<Database>,
+  userId: string,
+): Promise<MyTaskView[]> {
+  const rows = await db.selectFrom('tickets')
+    .innerJoin('projects', 'projects.id', 'tickets.project_id')
+    .innerJoin('workspace_members', join => join
+      .onRef('workspace_members.workspace_id', '=', 'projects.workspace_id')
+      .on('workspace_members.user_id', '=', userId))
+    .select([
+      'tickets.id',
+      'tickets.number',
+      'tickets.title',
+      'tickets.description',
+      'tickets.status',
+      'tickets.priority',
+      'tickets.assignee_id',
+      'tickets.reporter_id',
+      'tickets.created_at',
+      'projects.id as project_id',
+      'projects.name as project_name',
+      'projects.key as project_key',
+    ])
+    .where('tickets.assignee_id', '=', userId)
+    .where('tickets.status', 'not in', ['done', 'closed'])
+    .where('projects.archived_at', 'is', null)
+    .orderBy(sql<number>`
+      case
+        when tickets.status = 'blocked' or tickets.priority = 'urgent' then 0
+        else 1
+      end
+    `, 'asc')
+    .orderBy('tickets.created_at', 'asc')
+    .execute()
+
+  return rows.map(r => toTaskView(r as MyTaskRow))
 }
 
 /** Resolves a ticket plus its project key and the caller's context, or 404. */

@@ -29,23 +29,25 @@ export function BoardPage() {
 
   useEffect(() => { void load() }, [load])
 
-  if (error) return <main><p role="alert">{error}</p><Link to="/">Back</Link></main>
-  if (!project || !id) return <main><p>Loading...</p></main>
+  if (error) return <main className="page-main"><p role="alert">{error}</p><Link to="/">Tasks</Link></main>
+  if (!project || !id) return <main className="page-main"><p>Loading...</p></main>
 
   return (
-    <main>
-      <Link to="/">All projects</Link>
-      <h1>{project.key} - {project.name}</h1>
+    <main className="page-main">
+      <header className="topbar">
+        <Link to="/">Tasks</Link>
+        <h1>{project.key} - {project.name}</h1>
 
-      {allProjects.length > 1 && (
-        <label>Switch project
-          <select value={id} onChange={e => navigate(`/projects/${e.target.value}`)}>
-            {allProjects.map(p => (
-              <option key={p.id} value={p.id}>{p.key} - {p.name}</option>
-            ))}
-          </select>
-        </label>
-      )}
+        {allProjects.length > 1 && (
+          <label>Switch project
+            <select value={id} onChange={e => navigate(`/projects/${e.target.value}`)}>
+              {allProjects.map(p => (
+                <option key={p.id} value={p.id}>{p.key} - {p.name}</option>
+              ))}
+            </select>
+          </label>
+        )}
+      </header>
 
       {/* Board first: on a phone the create form would otherwise fill the
           whole screen and push the board you came to look at below the fold. */}

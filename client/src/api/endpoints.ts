@@ -17,10 +17,17 @@ export type Ticket = {
   assigneeId: string | null; reporterId: string; createdAt: string
 }
 
+export type TaskItem = Ticket & {
+  projectId: string
+  projectName: string
+  projectKey: string
+}
+
 const post = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) })
 
 export const endpoints = {
   me: () => api<PublicUser>('/me'),
+  listMyTasks: () => api<TaskItem[]>('/me/tasks'),
 
   listProjects: () => api<Project[]>('/projects'),
   createProject: (i: CreateProjectInput) => api<Project>('/projects', post(i)),

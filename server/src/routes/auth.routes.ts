@@ -2,6 +2,7 @@ import { Router } from 'express'
 import type { Kysely } from 'kysely'
 import type { Database } from '../db/types.js'
 import { requireUser } from '../auth/middleware.js'
+import { listMyTasks } from '../services/ticket.service.js'
 
 /**
  * Neon Auth owns signup, login, logout and password reset now, so Mira
@@ -18,5 +19,12 @@ export function meRoute(db: Kysely<Database>): Router {
       res.json({ id: u.id, email: u.email, displayName: u.display_name })
     } catch (err) { next(err) }
   })
+
+  r.get('/me/tasks', requireUser(db), async (req, res, next) => {
+    try {
+      res.json(await listMyTasks(db, req.userId!))
+    } catch (err) { next(err) }
+  })
+
   return r
 }

@@ -139,6 +139,56 @@ describe('GET /api/projects/:id/tickets', () => {
   })
 })
 
+describe('GET /api/me/tasks', () => {
+  it('returns the caller open tickets across projects with urgent and blocked first', async () => {
+    const agent = as(PATRICK)
+    const mira = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const api = await agent.post('/api/projects').send({ name: 'API', key: 'API' })
+
+    const normal = await agent.post(`/api/projects/${mira.body.id}/tickets`)
+      .send({ title: 'Wire board route' })
+    await new Promise(r => setTimeout(r, 5))
+    const blocked = await agent.post(`/api/projects/${api.body.id}/tickets`)
+      .send({ title: 'Unblock auth callback' })
+    await new Promise(r => setTimeout(r, 5))
+    const urgent = await agent.post(`/api/projects/${mira.body.id}/tickets`)
+      .send({ title: 'Fix production smoke', priority: 'urgent' })
+    const done = await agent.post(`/api/projects/${api.body.id}/tickets`)
+      .send({ title: 'Closed task' })
+
+    await agent.patch(`/api/tickets/${blocked.body.id}`).send({ status: 'blocked' })
+    await agent.patch(`/api/tickets/${done.body.id}`).send({ status: 'done' })
+
+    const res = await agent.get('/api/me/tasks')
+
+    expect(res.status).toBe(200)
+    expect(res.body.map((t: any) => t.title)).toEqual([
+      'Unblock auth callback',
+      'Fix production smoke',
+      'Wire board route',
+    ])
+    expect(res.body[0]).toMatchObject({
+      key: 'API-1',
+      projectId: api.body.id,
+      projectName: 'API',
+      projectKey: 'API',
+      status: 'blocked',
+    })
+    expect(res.body.map((t: any) => t.id)).not.toContain(done.body.id)
+  })
+
+  it('does not leak another user tickets', async () => {
+    const { agent, projectId } = await withProject()
+    await agent.post(`/api/projects/${projectId}/tickets`).send({ title: 'Private' })
+
+    const other = await stranger()
+    const res = await other.get('/api/me/tasks')
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual([])
+  })
+})
+
 describe('GET /api/tickets/:id', () => {
   it('returns one ticket with its key', async () => {
     const { agent, projectId } = await withProject()

@@ -71,14 +71,17 @@ export function TicketPage() {
   }
 
   if (error && !ticket) {
-    return <main><p role="alert">{error}</p><Link to="/">Back</Link></main>
+    return <main className="page-main"><p role="alert">{error}</p><Link to="/">Tasks</Link></main>
   }
-  if (!ticket) return <main><p>Loading...</p></main>
+  if (!ticket) return <main className="page-main"><p>Loading...</p></main>
 
   return (
-    <main>
-      <Link to="/">All projects</Link>
-      <h1>{ticket.key}</h1>
+    <main className="page-main">
+      <header className="topbar">
+        <Link to="/">Tasks</Link>
+        <h1>{ticket.key}</h1>
+      </header>
+
       {error && <p role="alert">{error}</p>}
       {saved && <p role="status">Saved.</p>}
 

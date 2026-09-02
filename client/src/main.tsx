@@ -5,7 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useSession } from './auth/useSession.js'
 import { SignupPage } from './routes/SignupPage.js'
 import { LoginPage } from './routes/LoginPage.js'
-import { ProjectListPage } from './routes/ProjectListPage.js'
+import { HomePage } from './routes/HomePage.js'
 import { BoardPage } from './routes/BoardPage.js'
 import { TicketPage } from './routes/TicketPage.js'
 
@@ -26,7 +26,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<ProjectListPage user={user} onSignOut={signOut} />} />
+      <Route path="/" element={<HomePage user={user} onSignOut={signOut} />} />
       <Route path="/projects/:id" element={<BoardPage />} />
       <Route path="/tickets/:id" element={<TicketPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

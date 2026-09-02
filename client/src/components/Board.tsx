@@ -27,7 +27,8 @@ export function Board(
             <ul>
               {column.map(t => (
                 <li key={t.id} className="ticket">
-                  <Link to={`/tickets/${t.id}`}><strong>{t.key}</strong></Link> {t.title}
+                  <Link to={`/tickets/${t.id}`}><strong>{t.key}</strong></Link>
+                  <span className="ticket-title">{t.title}</span>
                   <label>
                     Status for {t.key}
                     <select
