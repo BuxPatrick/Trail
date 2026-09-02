@@ -9,10 +9,27 @@
     "skipLibCheck": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["node"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node"
+    ],
     "baseUrl": ".",
-    "paths": { "@mira/shared": ["./shared/src/index.ts"] }
+    "paths": {
+      "@mira/shared": [
+        "./shared/src/index.ts"
+      ]
+    }
   },
-  "include": ["shared/src", "server/src", "server/tests", "client/src", "e2e"]
+  "include": [
+    "shared/src",
+    "server/src",
+    "server/tests",
+    "client/src",
+    "e2e",
+    "api"
+  ]
 }

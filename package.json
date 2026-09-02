@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "e2e": "playwright test",
     "dev:server": "npm run dev --workspace @mira/server",
-    "dev:client": "npm run dev --workspace @mira/client"
+    "dev:client": "npm run dev --workspace @mira/client",
+    "migrate": "tsx server/src/migrate-cli.ts",
+    "build": "npm run build --workspace @mira/client"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
