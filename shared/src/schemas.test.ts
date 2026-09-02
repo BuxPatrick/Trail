@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { signupSchema, createTicketSchema, TICKET_STATUSES } from './index.js'
+import {
+  signupSchema, createProjectSchema, createTicketSchema, TICKET_STATUSES,
+} from './index.js'
 
 describe('signupSchema', () => {
   it('accepts a valid signup', () => {
@@ -44,6 +46,13 @@ describe('createTicketSchema', () => {
 
   it('rejects an empty title', () => {
     expect(createTicketSchema.safeParse({ title: '   ' }).success).toBe(false)
+  })
+})
+
+describe('createProjectSchema', () => {
+  it('accepts only the project details the user should type', () => {
+    const r = createProjectSchema.parse({ name: 'Personal Website' })
+    expect(r).toEqual({ name: 'Personal Website' })
   })
 })
 

@@ -30,7 +30,6 @@ export function HomePage(
   const [projects, setProjects] = useState<Project[]>([])
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [name, setName] = useState('')
-  const [key, setKey] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -61,7 +60,7 @@ export function HomePage(
   async function create(e: FormEvent) {
     e.preventDefault()
     setError(null)
-    const parsed = createProjectSchema.safeParse({ name, key })
+    const parsed = createProjectSchema.safeParse({ name })
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Check the project details.')
       return
@@ -72,7 +71,6 @@ export function HomePage(
       const created = await endpoints.createProject(parsed.data)
       setProjects(p => [...p, created])
       setName('')
-      setKey('')
       navigate(`/projects/${created.id}`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong.')
@@ -151,15 +149,6 @@ export function HomePage(
               onChange={e => setName(e.target.value)}
               disabled={busy}
               placeholder="Mobile app"
-              required
-            />
-          </label>
-          <label>Key
-            <input
-              value={key}
-              onChange={e => setKey(e.target.value.toUpperCase())}
-              disabled={busy}
-              placeholder="MOB"
               required
             />
           </label>

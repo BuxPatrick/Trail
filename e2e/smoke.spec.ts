@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test'
 
-// A unique email and key per run, since this hits mira_dev rather than a
+// A unique email per run, since this hits mira_dev rather than a
 // wiped test database.
 const stamp = Date.now()
 const EMAIL = `smoke-${stamp}@example.com`
-const KEY = `SM${String(stamp).slice(-4)}`
 
 test('full ticket lifecycle: sign up, project, create, move, edit, delete', async ({ page }) => {
   // Land where a real visitor lands, and click through. Navigating straight
@@ -25,28 +24,31 @@ test('full ticket lifecycle: sign up, project, create, move, edit, delete', asyn
   await expect(page.getByRole('heading', { name: 'Collaborations', exact: true })).toBeVisible()
 
   await page.getByLabel('Name').fill('Smoke Project')
-  await page.getByLabel('Key').fill(KEY)
   await page.getByRole('button', { name: 'Create', exact: true }).click()
 
   await page.getByLabel('Title').fill('Prove the skeleton walks')
   await page.getByRole('button', { name: 'Add ticket' }).click()
 
-  const backlog = page.getByRole('region', { name: 'Backlog' })
-  await expect(backlog.getByText(`${KEY}-1`, { exact: true })).toBeVisible()
+  const key = await page.getByRole('heading', { name: / - Smoke Project$/ })
+    .textContent()
+    .then(text => text!.split(' - ')[0]!)
 
-  await page.getByLabel(`Status for ${KEY}-1`).selectOption('done')
+  const backlog = page.getByRole('region', { name: 'Backlog' })
+  await expect(backlog.getByText(`${key}-1`, { exact: true })).toBeVisible()
+
+  await page.getByLabel(`Status for ${key}-1`).selectOption('done')
 
   const done = page.getByRole('region', { name: 'Done', exact: true })
-  await expect(done.getByText(`${KEY}-1`, { exact: true })).toBeVisible()
+  await expect(done.getByText(`${key}-1`, { exact: true })).toBeVisible()
 
   // The requirement is persistence, not optimistic UI: reload and re-check.
   await page.reload()
   await expect(page.getByRole('region', { name: 'Done', exact: true })
-    .getByText(`${KEY}-1`, { exact: true })).toBeVisible()
+    .getByText(`${key}-1`, { exact: true })).toBeVisible()
 
   // INC 2: open the ticket, edit it in detail, and confirm it persists.
-  await page.getByRole('link', { name: `${KEY}-1` }).click()
-  await expect(page.getByRole('heading', { name: `${KEY}-1` })).toBeVisible()
+  await page.getByRole('link', { name: `${key}-1` }).click()
+  await expect(page.getByRole('heading', { name: `${key}-1` })).toBeVisible()
 
   await page.getByLabel('Priority').selectOption('urgent')
   await page.getByLabel('Title').fill('Prove the skeleton still walks')
@@ -62,6 +64,6 @@ test('full ticket lifecycle: sign up, project, create, move, edit, delete', asyn
   page.once('dialog', d => void d.accept())
   await page.getByRole('button', { name: 'Delete ticket' }).click()
 
-  await page.getByRole('link', { name: `${KEY} - Smoke Project` }).click()
-  await expect(page.getByText(`${KEY}-1`, { exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: `${key} - Smoke Project` }).click()
+  await expect(page.getByText(`${key}-1`, { exact: true })).toHaveCount(0)
 })

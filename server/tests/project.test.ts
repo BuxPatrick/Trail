@@ -31,36 +31,31 @@ const OTHER = AMA
 beforeEach(async () => { await resetDb() })
 
 describe('POST /api/projects', () => {
-  it('creates a project in the personal workspace', async () => {
+  it('creates a project in the personal workspace and generates its key', async () => {
     const agent = await signedInAgent()
-    const res = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const res = await agent.post('/api/projects').send({ name: 'Mira' })
     expect(res.status).toBe(201)
-    expect(res.body.key).toBe('MIRA')
+    expect(res.body.key).toBe('MIR')
     expect(res.body.name).toBe('Mira')
   })
 
-  it('uppercases the key', async () => {
+  it('generates initials for a multi-word project name', async () => {
     const agent = await signedInAgent()
-    const res = await agent.post('/api/projects').send({ name: 'Mira', key: 'mira' })
-    expect(res.body.key).toBe('MIRA')
+    const res = await agent.post('/api/projects').send({ name: 'Personal Website' })
+    expect(res.status).toBe(201)
+    expect(res.body.key).toBe('PW')
   })
 
-  it('rejects a key with punctuation', async () => {
+  it('appends a number when the generated key is already used', async () => {
     const agent = await signedInAgent()
-    const res = await agent.post('/api/projects').send({ name: 'X', key: 'MI-RA' })
-    expect(res.status).toBe(400)
-  })
-
-  it('rejects a duplicate key in the same workspace', async () => {
-    const agent = await signedInAgent()
-    await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
-    const res = await agent.post('/api/projects').send({ name: 'Other', key: 'MIRA' })
-    expect(res.status).toBe(409)
-    expect(res.body.error.code).toBe('KEY_TAKEN')
+    await agent.post('/api/projects').send({ name: 'Mira' })
+    const res = await agent.post('/api/projects').send({ name: 'Mirror' })
+    expect(res.status).toBe(201)
+    expect(res.body.key).toBe('MIR2')
   })
 
   it('requires authentication', async () => {
-    const res = await request(app).post('/api/projects').send({ name: 'X', key: 'XX' })
+    const res = await request(app).post('/api/projects').send({ name: 'X' })
     expect(res.status).toBe(401)
   })
 })
@@ -68,29 +63,29 @@ describe('POST /api/projects', () => {
 describe('GET /api/projects', () => {
   it('lists only the projects belonging to the caller', async () => {
     const mine = await signedInAgent()
-    await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    await mine.post('/api/projects').send({ name: 'Mira' })
 
     const other = await signedInAgent(OTHER)
-    await other.post('/api/projects').send({ name: 'Theirs', key: 'THEIRS' })
+    await other.post('/api/projects').send({ name: 'Theirs' })
 
     const res = await mine.get('/api/projects')
     expect(res.status).toBe(200)
-    expect(res.body.map((p: any) => p.key)).toEqual(['MIRA'])
+    expect(res.body.map((p: any) => p.key)).toEqual(['MIR'])
   })
 })
 
 describe('GET /api/projects/:id', () => {
   it('returns a project the caller can see', async () => {
     const agent = await signedInAgent()
-    const created = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const created = await agent.post('/api/projects').send({ name: 'Mira' })
     const res = await agent.get(`/api/projects/${created.body.id}`)
     expect(res.status).toBe(200)
-    expect(res.body.key).toBe('MIRA')
+    expect(res.body.key).toBe('MIR')
   })
 
   it('returns 404 - NOT 403 - for a project belonging to someone else', async () => {
     const mine = await signedInAgent()
-    const created = await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const created = await mine.post('/api/projects').send({ name: 'Mira' })
 
     const other = await signedInAgent(OTHER)
     const res = await other.get(`/api/projects/${created.body.id}`)
@@ -152,17 +147,17 @@ describe('projectContext', () => {
 describe('PATCH /api/projects/:id', () => {
   it('renames a project', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Mira' })
     const res = await agent.patch(`/api/projects/${p.body.id}`)
       .send({ name: 'Mira Tracker' })
     expect(res.status).toBe(200)
     expect(res.body.name).toBe('Mira Tracker')
-    expect(res.body.key).toBe('MIRA')
+    expect(res.body.key).toBe('MIR')
   })
 
   it('archives a project, removing it from the list but not the database', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Mira' })
     await agent.patch(`/api/projects/${p.body.id}`).send({ archived: true })
 
     expect((await agent.get('/api/projects')).body).toEqual([])
@@ -175,7 +170,7 @@ describe('PATCH /api/projects/:id', () => {
 
   it('un-archives a project', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Mira' })
     await agent.patch(`/api/projects/${p.body.id}`).send({ archived: true })
     await agent.patch(`/api/projects/${p.body.id}`).send({ archived: false })
     expect((await agent.get('/api/projects')).body).toHaveLength(1)
@@ -183,13 +178,13 @@ describe('PATCH /api/projects/:id', () => {
 
   it('rejects an empty patch', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Mira' })
     expect((await agent.patch(`/api/projects/${p.body.id}`).send({})).status).toBe(400)
   })
 
   it('returns 404 for a project belonging to someone else', async () => {
     const mine = await signedInAgent()
-    const p = await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await mine.post('/api/projects').send({ name: 'Mira' })
     const other = await signedInAgent(OTHER)
     const res = await other.patch(`/api/projects/${p.body.id}`).send({ name: 'Hijacked' })
     expect(res.status).toBe(404)
@@ -197,8 +192,8 @@ describe('PATCH /api/projects/:id', () => {
 
   it('does NOT change the key', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Mira' })
     await agent.patch(`/api/projects/${p.body.id}`).send({ name: 'X', key: 'ZZZ' } as any)
-    expect((await agent.get(`/api/projects/${p.body.id}`)).body.key).toBe('MIRA')
+    expect((await agent.get(`/api/projects/${p.body.id}`)).body.key).toBe('MIR')
   })
 })

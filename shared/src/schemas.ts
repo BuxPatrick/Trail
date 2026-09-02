@@ -16,10 +16,6 @@ export type LoginInput = z.infer<typeof loginSchema>
 
 export const createProjectSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  key: z.string().trim().toUpperCase().regex(
-    /^[A-Z][A-Z0-9]{1,9}$/,
-    'Key must be 2-10 characters, start with a letter, letters and digits only',
-  ),
   description: z.string().trim().max(2000).optional(),
 })
 export type CreateProjectInput = z.infer<typeof createProjectSchema>

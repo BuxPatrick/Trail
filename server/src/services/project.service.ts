@@ -15,6 +15,44 @@ export type ProjectSummary = {
 
 const NOT_FOUND = () => new AppError('PROJECT_NOT_FOUND', 'No such project.', 404)
 
+function baseProjectKey(name: string): string {
+  const words = name.toUpperCase().match(/[A-Z0-9]+/g) ?? []
+  const initials = words
+    .map(word => word.match(/[A-Z]/)?.[0])
+    .filter((letter): letter is string => Boolean(letter))
+
+  const raw = initials.length > 1
+    ? initials.slice(0, 4).join('')
+    : (words.join('').match(/[A-Z]/g) ?? []).join('').slice(0, 3)
+
+  return (raw || 'PRJ').padEnd(2, 'X')
+}
+
+async function nextProjectKey(
+  db: Kysely<Database>,
+  workspaceId: string,
+  name: string,
+): Promise<string> {
+  const base = baseProjectKey(name)
+  const rows = await db.selectFrom('projects')
+    .select('key')
+    .where('workspace_id', '=', workspaceId)
+    .where('key', 'like', `${base}%`)
+    .execute()
+  const existing = new Set(rows.map(r => r.key))
+
+  if (!existing.has(base)) return base
+
+  for (let n = 2; n < 1000; n += 1) {
+    const suffix = String(n)
+    const candidate = `${base.slice(0, 10 - suffix.length)}${suffix}`
+    if (!existing.has(candidate)) return candidate
+  }
+
+  throw new AppError('KEY_SPACE_EXHAUSTED',
+    'Mira could not generate a project key for that name.', 409)
+}
+
 export async function personalWorkspaceId(
   db: Kysely<Database>,
   userId: string,
@@ -31,18 +69,12 @@ export async function createProject(
   workspaceId: string,
   input: CreateProjectInput,
 ): Promise<ProjectSummary> {
-  const existing = await db.selectFrom('projects').select('id')
-    .where('workspace_id', '=', workspaceId).where('key', '=', input.key)
-    .executeTakeFirst()
-  if (existing) {
-    throw new AppError('KEY_TAKEN',
-      `The key ${input.key} is already used in this workspace.`, 409)
-  }
+  const key = await nextProjectKey(db, workspaceId, input.name)
 
   const row = await db.insertInto('projects').values({
     workspace_id: workspaceId,
     name: input.name,
-    key: input.key,
+    key,
     description: input.description ?? null,
   }).returning(['id', 'name', 'key', 'description', 'workspace_id'])
     .executeTakeFirstOrThrow()
