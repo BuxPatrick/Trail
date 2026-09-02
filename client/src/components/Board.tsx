@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { TICKET_STATUSES, type TicketStatus } from '@mira/shared'
 import type { Ticket } from '../api/endpoints.js'
 
@@ -26,7 +27,7 @@ export function Board(
             <ul>
               {column.map(t => (
                 <li key={t.id}>
-                  <strong>{t.key}</strong> {t.title}
+                  <Link to={`/tickets/${t.id}`}><strong>{t.key}</strong></Link> {t.title}
                   <label>
                     Status for {t.key}
                     <select

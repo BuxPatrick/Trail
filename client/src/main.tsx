@@ -6,6 +6,7 @@ import { SignupPage } from './routes/SignupPage.js'
 import { LoginPage } from './routes/LoginPage.js'
 import { ProjectListPage } from './routes/ProjectListPage.js'
 import { BoardPage } from './routes/BoardPage.js'
+import { TicketPage } from './routes/TicketPage.js'
 
 function App() {
   const { user, loading, refresh } = useSession()
@@ -26,6 +27,7 @@ function App() {
     <Routes>
       <Route path="/" element={<ProjectListPage user={user} onSignOut={refresh} />} />
       <Route path="/projects/:id" element={<BoardPage />} />
+      <Route path="/tickets/:id" element={<TicketPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -1,6 +1,6 @@
 import type {
   CreateProjectInput, CreateTicketInput, LoginInput, SignupInput,
-  TicketPriority, TicketStatus, UpdateTicketInput,
+  TicketPriority, TicketStatus, UpdateProjectInput, UpdateTicketInput,
 } from '@mira/shared'
 import { api } from './client.js'
 
@@ -28,6 +28,8 @@ export const endpoints = {
   listProjects: () => api<Project[]>('/projects'),
   createProject: (i: CreateProjectInput) => api<Project>('/projects', post(i)),
   getProject: (id: string) => api<Project>(`/projects/${id}`),
+  updateProject: (id: string, i: UpdateProjectInput) =>
+    api<Project>(`/projects/${id}`, { method: 'PATCH', body: JSON.stringify(i) }),
 
   listTickets: (projectId: string) =>
     api<Ticket[]>(`/projects/${projectId}/tickets`),
@@ -35,4 +37,6 @@ export const endpoints = {
     api<Ticket>(`/projects/${projectId}/tickets`, post(i)),
   updateTicket: (id: string, i: UpdateTicketInput) =>
     api<Ticket>(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify(i) }),
+  getTicket: (id: string) => api<Ticket>(`/tickets/${id}`),
+  deleteTicket: (id: string) => api<void>(`/tickets/${id}`, { method: 'DELETE' }),
 }
