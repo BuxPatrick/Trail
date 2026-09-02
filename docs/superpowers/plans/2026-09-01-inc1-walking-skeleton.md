@@ -3059,7 +3059,8 @@ export function ProjectListPage(
       return
     }
     try {
-      setProjects(p => [...p, await endpoints.createProject(parsed.data)])
+      const created = await endpoints.createProject(parsed.data)
+      setProjects(p => [...p, created])
       setName(''); setKey('')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong.')
