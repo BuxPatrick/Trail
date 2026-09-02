@@ -6,7 +6,7 @@ const stamp = Date.now()
 const EMAIL = `smoke-${stamp}@example.com`
 const KEY = `SM${String(stamp).slice(-4)}`
 
-test('sign up, create a project, create a ticket, move it to Done', async ({ page }) => {
+test('full ticket lifecycle: sign up, project, create, move, edit, delete', async ({ page }) => {
   await page.goto('/signup')
 
   await page.getByLabel('Name').fill('Smoke Test')
@@ -37,4 +37,25 @@ test('sign up, create a project, create a ticket, move it to Done', async ({ pag
   await page.reload()
   await expect(page.getByRole('region', { name: 'Done', exact: true })
     .getByText(`${KEY}-1`, { exact: true })).toBeVisible()
+
+  // INC 2: open the ticket, edit it in detail, and confirm it persists.
+  await page.getByRole('link', { name: `${KEY}-1` }).click()
+  await expect(page.getByRole('heading', { name: `${KEY}-1` })).toBeVisible()
+
+  await page.getByLabel('Priority').selectOption('urgent')
+  await page.getByLabel('Title').fill('Prove the skeleton still walks')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByRole('status')).toHaveText('Saved.')
+
+  await page.reload()
+  await expect(page.getByLabel('Priority')).toHaveValue('urgent')
+  await expect(page.getByLabel('Title'))
+    .toHaveValue('Prove the skeleton still walks')
+
+  // INC 2: delete it, and confirm the board no longer shows it.
+  page.once('dialog', d => void d.accept())
+  await page.getByRole('button', { name: 'Delete ticket' }).click()
+
+  await page.getByRole('link', { name: `${KEY} - Smoke Project` }).click()
+  await expect(page.getByText(`${KEY}-1`, { exact: true })).toHaveCount(0)
 })
