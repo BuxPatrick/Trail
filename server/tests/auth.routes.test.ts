@@ -20,7 +20,7 @@ describe('POST /api/auth/signup', () => {
     expect(res.body.email).toBe('patrick@example.com')
     expect(res.body).not.toHaveProperty('passwordHash')
 
-    const cookie = res.headers['set-cookie'][0]
+    const cookie = res.headers['set-cookie']![0]!
     expect(cookie).toContain('mira_session=')
     expect(cookie).toContain('HttpOnly')
     expect(cookie).toContain('SameSite=Lax')
@@ -47,7 +47,7 @@ describe('POST /api/auth/login', () => {
     const res = await request(app).post('/api/auth/login')
       .send({ email: INPUT.email, password: INPUT.password })
     expect(res.status).toBe(200)
-    expect(res.headers['set-cookie'][0]).toContain('mira_session=')
+    expect(res.headers['set-cookie']![0]!).toContain('mira_session=')
   })
 
   it('returns 401 for a wrong password', async () => {

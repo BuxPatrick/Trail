@@ -1190,6 +1190,24 @@ export async function resetDb(): Promise<void> {
 Add to `.env` (gitignored, unlike `.env.example`):
 `TEST_DATABASE_URL=postgres://postgres:<your-password>@localhost:5432/mira_test`
 
+Also create `vitest.config.ts` at the repo root. Without it, Vitest runs test
+files in PARALLEL against the one shared `mira_test` database, and each file's
+`resetDb()` truncates the tables out from under the others. The symptom is
+nasty: every file passes when run alone, and roughly a third of the suite fails
+when run together.
+
+```ts
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    // Integration tests share one database and reset by truncating, so files
+    // must run one at a time or they wipe each other's rows mid-test.
+    fileParallelism: false,
+  },
+})
+```
+
 - [ ] **Step 6: Run the tests and confirm they pass**
 
 Run: `npx vitest run server/tests/schema.test.ts`
