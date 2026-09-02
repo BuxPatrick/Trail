@@ -1,11 +1,11 @@
 import { Router } from 'express'
 import type { Kysely } from 'kysely'
-import { createProjectSchema } from '@mira/shared'
+import { createProjectSchema, updateProjectSchema } from '@mira/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { requireUser } from '../auth/middleware.js'
 import {
-  createProject, getProject, listMyProjects, personalWorkspaceId,
+  createProject, getProject, listMyProjects, personalWorkspaceId, updateProject,
 } from '../services/project.service.js'
 
 export function projectRoutes(db: Kysely<Database>): Router {
@@ -34,6 +34,17 @@ export function projectRoutes(db: Kysely<Database>): Router {
   r.get('/:id', async (req, res, next) => {
     try {
       res.json(await getProject(db, req.userId!, req.params.id!))
+    } catch (err) { next(err) }
+  })
+
+  r.patch('/:id', async (req, res, next) => {
+    try {
+      const parsed = updateProjectSchema.safeParse(req.body)
+      if (!parsed.success) {
+        throw new AppError('VALIDATION_FAILED',
+          parsed.error.issues[0]?.message ?? 'Invalid input.', 400)
+      }
+      res.json(await updateProject(db, req.userId!, req.params.id!, parsed.data))
     } catch (err) { next(err) }
   })
 

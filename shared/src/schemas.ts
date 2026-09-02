@@ -39,3 +39,10 @@ export const updateTicketSchema = z.object({
   priority: z.enum(TICKET_PRIORITIES).optional(),
 }).refine(v => Object.keys(v).length > 0, { message: 'No fields to update' })
 export type UpdateTicketInput = z.infer<typeof updateTicketSchema>
+
+export const updateProjectSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  description: z.string().trim().max(2000).optional(),
+  archived: z.boolean().optional(),
+}).refine(v => Object.keys(v).length > 0, { message: 'No fields to update' })
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>

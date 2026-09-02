@@ -143,3 +143,57 @@ describe('projectContext', () => {
     expect((await projectContext(testDb, u.id, p.id))?.mode).toBe('managed')
   })
 })
+
+describe('PATCH /api/projects/:id', () => {
+  it('renames a project', async () => {
+    const agent = await signedInAgent()
+    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const res = await agent.patch(`/api/projects/${p.body.id}`)
+      .send({ name: 'Mira Tracker' })
+    expect(res.status).toBe(200)
+    expect(res.body.name).toBe('Mira Tracker')
+    expect(res.body.key).toBe('MIRA')
+  })
+
+  it('archives a project, removing it from the list but not the database', async () => {
+    const agent = await signedInAgent()
+    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    await agent.patch(`/api/projects/${p.body.id}`).send({ archived: true })
+
+    expect((await agent.get('/api/projects')).body).toEqual([])
+    // Still reachable by id - archiving is not deleting.
+    expect((await agent.get(`/api/projects/${p.body.id}`)).status).toBe(200)
+    const row = await testDb.selectFrom('projects').selectAll()
+      .where('id', '=', p.body.id).executeTakeFirstOrThrow()
+    expect(row.archived_at).not.toBeNull()
+  })
+
+  it('un-archives a project', async () => {
+    const agent = await signedInAgent()
+    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    await agent.patch(`/api/projects/${p.body.id}`).send({ archived: true })
+    await agent.patch(`/api/projects/${p.body.id}`).send({ archived: false })
+    expect((await agent.get('/api/projects')).body).toHaveLength(1)
+  })
+
+  it('rejects an empty patch', async () => {
+    const agent = await signedInAgent()
+    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    expect((await agent.patch(`/api/projects/${p.body.id}`).send({})).status).toBe(400)
+  })
+
+  it('returns 404 for a project belonging to someone else', async () => {
+    const mine = await signedInAgent()
+    const p = await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const other = await signedInAgent(OTHER)
+    const res = await other.patch(`/api/projects/${p.body.id}`).send({ name: 'Hijacked' })
+    expect(res.status).toBe(404)
+  })
+
+  it('does NOT change the key', async () => {
+    const agent = await signedInAgent()
+    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    await agent.patch(`/api/projects/${p.body.id}`).send({ name: 'X', key: 'ZZZ' } as any)
+    expect((await agent.get(`/api/projects/${p.body.id}`)).body.key).toBe('MIRA')
+  })
+})
