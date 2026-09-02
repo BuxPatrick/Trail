@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { signupSchema } from '@mira/shared'
+import { signupSchema } from '@trail/shared'
 import { neon } from '../auth/neon.js'
 
 export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
@@ -23,7 +23,7 @@ export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
     setBusy(true)
     try {
       // Neon Auth owns the credential. onDone() then fetches /api/me, which
-      // is what provisions this user's Mira record and personal workspace.
+      // is what provisions this user's Trail record and personal workspace.
       const { error: authError } = await neon.signUp.email({
         email: parsed.data.email,
         password: parsed.data.password,
@@ -41,7 +41,7 @@ export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
 
   return (
     <form onSubmit={submit}>
-      <h1>Create your Mira account</h1>
+      <h1>Create your Trail account</h1>
       {error && <p role="alert">{error}</p>}
       <label>Name
         <input value={displayName} onChange={e => setDisplayName(e.target.value)}

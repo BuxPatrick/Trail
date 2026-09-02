@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // Source, not dist: HMR should pick up schema edits immediately.
-      '@mira/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),
+      '@trail/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),
     },
   },
   server: {

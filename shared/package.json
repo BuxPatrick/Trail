@@ -1,5 +1,5 @@
 {
-  "name": "@mira/shared",
+  "name": "@trail/shared",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",

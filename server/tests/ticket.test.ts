@@ -20,7 +20,7 @@ const as = (token: string) => ({
 
 async function withProject() {
   const agent = as(PATRICK)
-  const p = await agent.post('/api/projects').send({ name: 'Mira' })
+  const p = await agent.post('/api/projects').send({ name: 'Trail' })
   return { agent, projectId: p.body.id as string }
 }
 
@@ -30,13 +30,13 @@ const stranger = async () => as(AMA)
 beforeEach(async () => { await resetDb() })
 
 describe('POST /api/projects/:id/tickets', () => {
-  it('creates a ticket numbered from 1 and keyed MIR-1', async () => {
+  it('creates a ticket numbered from 1 and keyed TRA-1', async () => {
     const { agent, projectId } = await withProject()
     const res = await agent.post(`/api/projects/${projectId}/tickets`)
       .send({ title: 'Set up the database' })
     expect(res.status).toBe(201)
     expect(res.body.number).toBe(1)
-    expect(res.body.key).toBe('MIR-1')
+    expect(res.body.key).toBe('TRA-1')
     expect(res.body.status).toBe('backlog')
     expect(res.body.priority).toBe('medium')
   })
@@ -47,7 +47,7 @@ describe('POST /api/projects/:id/tickets', () => {
       await agent.post(`/api/projects/${projectId}/tickets`).send({ title: t })
     }
     const list = await agent.get(`/api/projects/${projectId}/tickets`)
-    expect(list.body.map((t: any) => t.key)).toEqual(['MIR-1', 'MIR-2', 'MIR-3'])
+    expect(list.body.map((t: any) => t.key)).toEqual(['TRA-1', 'TRA-2', 'TRA-3'])
   })
 
   it('never reuses a number under concurrent creation', async () => {
@@ -86,7 +86,7 @@ describe('PATCH /api/tickets/:id', () => {
       .send({ status: 'in_progress' })
     expect(res.status).toBe(200)
     expect(res.body.status).toBe('in_progress')
-    expect(res.body.key).toBe('MIR-1')
+    expect(res.body.key).toBe('TRA-1')
   })
 
   it('rejects a status outside the six', async () => {
@@ -142,16 +142,16 @@ describe('GET /api/projects/:id/tickets', () => {
 describe('GET /api/me/tasks', () => {
   it('returns the caller open tickets across projects with urgent and blocked first', async () => {
     const agent = as(PATRICK)
-    const mira = await agent.post('/api/projects').send({ name: 'Mira' })
+    const trail = await agent.post('/api/projects').send({ name: 'Trail' })
     const api = await agent.post('/api/projects').send({ name: 'API' })
 
-    const normal = await agent.post(`/api/projects/${mira.body.id}/tickets`)
+    const normal = await agent.post(`/api/projects/${trail.body.id}/tickets`)
       .send({ title: 'Wire board route' })
     await new Promise(r => setTimeout(r, 5))
     const blocked = await agent.post(`/api/projects/${api.body.id}/tickets`)
       .send({ title: 'Unblock auth callback' })
     await new Promise(r => setTimeout(r, 5))
-    const urgent = await agent.post(`/api/projects/${mira.body.id}/tickets`)
+    const urgent = await agent.post(`/api/projects/${trail.body.id}/tickets`)
       .send({ title: 'Fix production smoke', priority: 'urgent' })
     const done = await agent.post(`/api/projects/${api.body.id}/tickets`)
       .send({ title: 'Closed task' })
@@ -196,7 +196,7 @@ describe('GET /api/tickets/:id', () => {
       .send({ title: 'Set up the database', description: 'Postgres + Kysely' })
     const res = await agent.get(`/api/tickets/${t.body.id}`)
     expect(res.status).toBe(200)
-    expect(res.body.key).toBe('MIR-1')
+    expect(res.body.key).toBe('TRA-1')
     expect(res.body.description).toBe('Postgres + Kysely')
   })
 
@@ -228,8 +228,8 @@ describe('DELETE /api/tickets/:id', () => {
     await agent.delete(`/api/tickets/${t.body.id}`)
     const next = await agent.post(`/api/projects/${projectId}/tickets`)
       .send({ title: 'Two' })
-    // The counter never rewinds: MIR-1 must not come to mean a second thing.
-    expect(next.body.key).toBe('MIR-2')
+    // The counter never rewinds: TRA-1 must not come to mean a second thing.
+    expect(next.body.key).toBe('TRA-2')
   })
 
   it('returns 404 for a ticket the caller cannot see', async () => {

@@ -1,15 +1,15 @@
-# Mira
+# Trail
 
-Mira is a lightweight project manager and task tracker inspired by Jira, built
+Trail is a lightweight project manager and task tracker inspired by Jira, built
 from scratch as a learning project.
 
-The goal is not to clone Jira feature-for-feature. Mira is focused on the core
+The goal is not to clone Jira feature-for-feature. Trail is focused on the core
 workflow: create projects, track tickets, move work through statuses, and
 eventually collaborate with other users across personal and shared workspaces.
 
 ## Current MVP
 
-Mira currently supports:
+Trail currently supports:
 
 - Neon Auth sign up and login
 - Automatic personal workspace creation
@@ -120,7 +120,7 @@ http://localhost:5173
 
 ## Product Direction
 
-Mira is being built incrementally. Each increment should leave the app usable
+Trail is being built incrementally. Each increment should leave the app usable
 and deployable.
 
 Planned next areas:
@@ -135,10 +135,10 @@ Planned next areas:
 
 ## Design Notes
 
-Mira treats personal work and collaboration work as workspaces. A user's
+Trail treats personal work and collaboration work as workspaces. A user's
 personal area is simply a private workspace with one member. This keeps the
 model simple now while leaving room for team collaboration later.
 
-Projects have short internal keys used for readable ticket labels like `MIR-1`,
-but users do not need to create those keys manually. Mira generates them
+Projects have short internal keys used for readable ticket labels like `TRA-1`,
+but users do not need to create those keys manually. Trail generates them
 automatically from the project name.

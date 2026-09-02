@@ -4,7 +4,7 @@ import type { NeonClaims } from '../../src/auth/verify.js'
  * Tests must not depend on Neon issuing real tokens. Each test file mocks
  * `verifyToken` (see the vi.mock at the top of those files) so that a "token"
  * is simply base64url-encoded claims - which keeps the integration tests
- * exercising Mira's provisioning, permissions and routes rather than jose.
+ * exercising Trail's provisioning, permissions and routes rather than jose.
  *
  * The signature check itself is jose's job and is covered by its own tests.
  */

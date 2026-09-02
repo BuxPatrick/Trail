@@ -5,10 +5,10 @@ import type { NeonClaims } from '../auth/verify.js'
 export type PublicUser = { id: string; email: string; displayName: string }
 
 /**
- * Turns a verified Neon identity into a Mira user, creating the row and its
+ * Turns a verified Neon identity into a Trail user, creating the row and its
  * personal workspace the first time we see that subject.
  *
- * This replaces the old signup(): Neon owns credentials now, but Mira still
+ * This replaces the old signup(): Neon owns credentials now, but Trail still
  * owns the "every user has somewhere to put a project" invariant, so that
  * provisioning has to happen on first authenticated request instead.
  *

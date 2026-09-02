@@ -1,14 +1,14 @@
 import type { Generated, ColumnType } from 'kysely'
 import type {
   TicketStatus, TicketPriority, WorkspaceKind, Mode, Role,
-} from '@mira/shared'
+} from '@trail/shared'
 
 type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>
 
 export interface UsersTable {
   id: Generated<string>
   email: string
-  /** The `sub` claim from the Neon Auth JWT. How a token becomes a Mira user. */
+  /** The `sub` claim from the Neon Auth JWT. How a token becomes a Trail user. */
   neon_user_id: string
   display_name: string
   created_at: Generated<Timestamp>

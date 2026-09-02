@@ -1,5 +1,5 @@
 {
-  "name": "mira",
+  "name": "trail",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -11,11 +11,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "playwright test",
-    "dev:server": "npm run build:shared && npm run dev --workspace @mira/server",
-    "dev:client": "npm run dev --workspace @mira/client",
+    "dev:server": "npm run build:shared && npm run dev --workspace @trail/server",
+    "dev:client": "npm run dev --workspace @trail/client",
     "migrate": "tsx server/src/migrate-cli.ts",
-    "build": "npm run build:shared && npm run build --workspace @mira/client",
-    "build:shared": "npm run build --workspace @mira/shared"
+    "build": "npm run build:shared && npm run build --workspace @trail/client",
+    "build:shared": "npm run build --workspace @trail/shared"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

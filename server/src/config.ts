@@ -4,7 +4,7 @@ import { config as loadEnv } from 'dotenv'
 import { z } from 'zod'
 
 // Resolve .env from THIS FILE, not from process.cwd(). Vitest runs from the
-// repo root but `npm run dev --workspace @mira/server` runs from server/, so
+// repo root but `npm run dev --workspace @trail/server` runs from server/, so
 // a cwd-relative lookup works under test and fails when you actually start
 // the server - the worst possible split.
 loadEnv({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env') })

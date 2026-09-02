@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { createProjectSchema, TICKET_STATUSES, type TicketStatus } from '@mira/shared'
+import { createProjectSchema, TICKET_STATUSES, type TicketStatus } from '@trail/shared'
 import {
   endpoints, type Project, type PublicUser, type TaskItem,
 } from '../api/endpoints.js'
@@ -44,7 +44,7 @@ export function HomePage(
       setProjects(projectList)
       setTasks(taskList)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Mira could not load your workspace.')
+      setError(err instanceof ApiError ? err.message : 'Trail could not load your workspace.')
     } finally {
       setLoading(false)
     }
@@ -100,7 +100,7 @@ export function HomePage(
       <aside className="sidebar" aria-label="Workspace navigation">
         <div className="brand-row">
           <div>
-            <p className="eyebrow">Mira</p>
+            <p className="eyebrow">Trail</p>
             <h1>My work</h1>
           </div>
           <button

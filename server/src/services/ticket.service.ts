@@ -1,7 +1,7 @@
 import { sql, type Kysely } from 'kysely'
 import type {
   CreateTicketInput, TicketPriority, TicketStatus, UpdateTicketInput,
-} from '@mira/shared'
+} from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { canCreateTicket, canEditTicket, canView } from '../permissions/index.js'

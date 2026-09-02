@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:shared && npm run build --workspace @mira/client",
+  "buildCommand": "npm run build:shared && npm run build --workspace @trail/client",
   "outputDirectory": "client/dist",
   "installCommand": "npm install",
   "rewrites": [

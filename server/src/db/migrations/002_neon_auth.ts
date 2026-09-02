@@ -3,7 +3,7 @@ import { Kysely, sql } from 'kysely'
 /**
  * Move authentication to Neon Auth.
  *
- * Mira keeps its OWN users table as a local projection rather than pointing
+ * Trail keeps its OWN users table as a local projection rather than pointing
  * foreign keys at neon_auth.users_sync. Two reasons:
  *
  *  1. users_sync is populated ASYNCHRONOUSLY (usually under a second). Signup
@@ -15,7 +15,7 @@ import { Kysely, sql } from 'kysely'
  *     do not change type or shape at all.
  *
  * neon_user_id holds the JWT `sub` claim and is how a verified token is
- * resolved to a Mira user.
+ * resolved to a Trail user.
  */
 export async function up(db: Kysely<any>): Promise<void> {
   // Sessions were our own cookie-backed mechanism. Neon Auth issues JWTs, so

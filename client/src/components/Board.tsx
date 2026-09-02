@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { TICKET_STATUSES, type TicketStatus } from '@mira/shared'
+import { TICKET_STATUSES, type TicketStatus } from '@trail/shared'
 import type { Ticket } from '../api/endpoints.js'
 
 const LABELS: Record<TicketStatus, string> = {

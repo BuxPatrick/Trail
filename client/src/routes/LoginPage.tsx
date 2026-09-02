@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { loginSchema } from '@mira/shared'
+import { loginSchema } from '@trail/shared'
 import { neon } from '../auth/neon.js'
 
 export function LoginPage({ onDone }: { onDone: () => Promise<void> }) {
@@ -36,7 +36,7 @@ export function LoginPage({ onDone }: { onDone: () => Promise<void> }) {
 
   return (
     <form onSubmit={submit}>
-      <h1>Sign in to Mira</h1>
+      <h1>Sign in to Trail</h1>
       {error && <p role="alert">{error}</p>}
       <label>Email
         <input type="email" value={email} onChange={e => setEmail(e.target.value)}

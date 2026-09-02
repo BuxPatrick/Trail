@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   TICKET_PRIORITIES, TICKET_STATUSES,
   type TicketPriority, type TicketStatus, type UpdateTicketInput,
-} from '@mira/shared'
+} from '@trail/shared'
 import { endpoints, type Ticket } from '../api/endpoints.js'
 import { ApiError } from '../api/client.js'
 

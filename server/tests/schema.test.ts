@@ -91,7 +91,7 @@ describe('schema', () => {
       VALUES ('P', 'personal', ${uid}) RETURNING id`.execute(testDb)
     const p = await sql<{ id: string }>`
       INSERT INTO projects (workspace_id, name, key)
-      VALUES (${w.rows[0]!.id}, 'Mira', 'MIRA') RETURNING id`.execute(testDb)
+      VALUES (${w.rows[0]!.id}, 'Trail', 'TRAIL') RETURNING id`.execute(testDb)
     const e = await sql<{ id: string }>`
       INSERT INTO epics (project_id, title)
       VALUES (${p.rows[0]!.id}, 'Auth') RETURNING id`.execute(testDb)

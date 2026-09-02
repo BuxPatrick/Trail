@@ -21,7 +21,7 @@ const jwks = jose.createRemoteJWKSet(
   new URL(`${config.neonAuthUrl.replace(/\/$/, '')}/.well-known/jwks.json`),
 )
 
-/** Verifies a bearer token and pulls out the claims Mira needs. */
+/** Verifies a bearer token and pulls out the claims Trail needs. */
 export async function verifyToken(token: string): Promise<NeonClaims | null> {
   try {
     const { payload } = await jose.jwtVerify(token, jwks)

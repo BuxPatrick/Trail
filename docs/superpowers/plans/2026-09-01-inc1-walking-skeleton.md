@@ -1,14 +1,14 @@
-# Mira INC 1 — Walking Skeleton Implementation Plan
+# Trail INC 1 — Walking Skeleton Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a usable single-user ticket tracker — sign up, log in, create a project, create tickets with real keys, and move them across six statuses — complete enough that Mira can hold its own backlog.
+**Goal:** Build a usable single-user ticket tracker — sign up, log in, create a project, create tickets with real keys, and move them across six statuses — complete enough that Trail can hold its own backlog.
 
 **Architecture:** An npm-workspaces monorepo with three packages. `shared` holds Zod schemas that validate requests on the server and type forms on the client. `server` is Express over PostgreSQL via Kysely, layered so routes never touch the database and services never touch `req`/`res`. `client` is React talking to the server over a typed fetch wrapper. Authentication is server-side sessions in an httpOnly cookie.
 
 **Tech Stack:** TypeScript, Node 24, Express 5, PostgreSQL, Kysely, Zod, argon2, React 19, Vite, Vitest, Supertest, Playwright.
 
-**Spec:** `docs/superpowers/specs/2026-09-01-mira-design.md`
+**Spec:** `docs/superpowers/specs/2026-09-01-trail-design.md`
 
 ## Global Constraints
 
@@ -29,8 +29,8 @@
 
 ```bash
 winget install PostgreSQL.PostgreSQL.17     # or Docker, or a hosted URL
-createdb mira_dev
-createdb mira_test
+createdb trail_dev
+createdb trail_test
 ```
 
 Tasks 1, 2 and 3 have no database dependency and can be completed first.
@@ -40,7 +40,7 @@ Tasks 1, 2 and 3 have no database dependency and can be completed first.
 ## File Structure
 
 ```
-Mira/
+Trail/
 ├─ package.json                   npm workspaces root, shared scripts
 ├─ tsconfig.json                  one config covering all three packages
 ├─ .env.example                   documented environment variables
@@ -120,7 +120,7 @@ Mira/
 
 ```json
 {
-  "name": "mira",
+  "name": "trail",
   "private": true,
   "type": "module",
   "workspaces": ["shared", "server", "client"],
@@ -155,7 +155,7 @@ reference graph, and at this size that is ceremony that buys nothing:
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "baseUrl": ".",
-    "paths": { "@mira/shared": ["./shared/src/index.ts"] }
+    "paths": { "@trail/shared": ["./shared/src/index.ts"] }
   },
   "include": ["shared/src", "server/src", "server/tests", "client/src", "e2e"]
 }
@@ -175,9 +175,9 @@ test-results/
 `.env.example`:
 
 ```
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/mira_dev
-TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/mira_test
-SESSION_COOKIE_NAME=mira_session
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/trail_dev
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/trail_test
+SESSION_COOKIE_NAME=trail_session
 SESSION_TTL_DAYS=30
 PORT=3001
 CLIENT_ORIGIN=http://localhost:5173
@@ -259,7 +259,7 @@ Expected: FAIL — cannot resolve `./index.js`.
 
 ```json
 {
-  "name": "@mira/shared",
+  "name": "@trail/shared",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -469,12 +469,12 @@ Expected: FAIL — modules not found.
 
 ```json
 {
-  "name": "@mira/server",
+  "name": "@trail/server",
   "private": true,
   "type": "module",
   "scripts": { "dev": "tsx watch src/index.ts" },
   "dependencies": {
-    "@mira/shared": "*",
+    "@trail/shared": "*",
     "argon2": "^0.41.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -580,7 +580,7 @@ git commit -m "feat: add error layer and argon2id password hashing"
 - Test: `server/src/permissions/index.test.ts`
 
 **Interfaces:**
-- Consumes: `Mode`, `Role` from `@mira/shared`.
+- Consumes: `Mode`, `Role` from `@trail/shared`.
 - Produces:
   - `type PermissionContext = { userId: string; role: Role | null; mode: Mode }` — `role` is `null` when the user is not a member at all.
   - `type TicketRef = { assigneeId: string | null }`
@@ -716,7 +716,7 @@ Expected: FAIL — module not found.
 `server/src/permissions/index.ts`:
 
 ```ts
-import type { Mode, Role } from '@mira/shared'
+import type { Mode, Role } from '@trail/shared'
 
 /**
  * Everything the permission rules need, and nothing else. Callers resolve
@@ -789,7 +789,7 @@ git commit -m "feat: add the permission module with the full mode matrix"
 
 ## Task 4: Database connection, migrations, and the initial schema
 
-**REQUIRES POSTGRESQL.** Do not start until `createdb mira_dev && createdb mira_test` has succeeded.
+**REQUIRES POSTGRESQL.** Do not start until `createdb trail_dev && createdb trail_test` has succeeded.
 
 **Files:**
 - Create: `server/src/config.ts`, `server/src/db/types.ts`, `server/src/db/index.ts`
@@ -892,7 +892,7 @@ import { config as loadEnv } from 'dotenv'
 import { z } from 'zod'
 
 // Resolve .env from THIS FILE, not from process.cwd(). Vitest runs from the
-// repo root but `npm run dev --workspace @mira/server` runs from server/, so
+// repo root but `npm run dev --workspace @trail/server` runs from server/, so
 // a cwd-relative lookup works under test and fails when you actually start
 // the server - the worst possible split.
 loadEnv({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env') })
@@ -900,7 +900,7 @@ loadEnv({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../.
 const schema = z.object({
   DATABASE_URL: z.string().url(),
   TEST_DATABASE_URL: z.string().url().optional(),
-  SESSION_COOKIE_NAME: z.string().default('mira_session'),
+  SESSION_COOKIE_NAME: z.string().default('trail_session'),
   SESSION_TTL_DAYS: z.coerce.number().int().positive().default(30),
   PORT: z.coerce.number().int().positive().default(3001),
   CLIENT_ORIGIN: z.string().url().default('http://localhost:5173'),
@@ -924,7 +924,7 @@ export const config = Object.freeze({
 import type { Generated, ColumnType } from 'kysely'
 import type {
   TicketStatus, TicketPriority, WorkspaceKind, Mode, Role,
-} from '@mira/shared'
+} from '@trail/shared'
 
 type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>
 
@@ -1196,10 +1196,10 @@ export async function resetDb(): Promise<void> {
 ```
 
 Add to `.env` (gitignored, unlike `.env.example`):
-`TEST_DATABASE_URL=postgres://postgres:<your-password>@localhost:5432/mira_test`
+`TEST_DATABASE_URL=postgres://postgres:<your-password>@localhost:5432/trail_test`
 
 Also create `vitest.config.ts` at the repo root. Without it, Vitest runs test
-files in PARALLEL against the one shared `mira_test` database, and each file's
+files in PARALLEL against the one shared `trail_test` database, and each file's
 `resetDb()` truncates the tables out from under the others. The symptom is
 nasty: every file passes when run alone, and roughly a third of the suite fails
 when run together.
@@ -1419,7 +1419,7 @@ export async function destroySession(
 
 ```ts
 import type { Kysely } from 'kysely'
-import type { LoginInput, SignupInput } from '@mira/shared'
+import type { LoginInput, SignupInput } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { hashPassword, verifyPassword } from '../auth/password.js'
@@ -1536,7 +1536,7 @@ describe('POST /api/auth/signup', () => {
     expect(res.body).not.toHaveProperty('passwordHash')
 
     const cookie = res.headers['set-cookie'][0]
-    expect(cookie).toContain('mira_session=')
+    expect(cookie).toContain('trail_session=')
     expect(cookie).toContain('HttpOnly')
     expect(cookie).toContain('SameSite=Lax')
   })
@@ -1562,7 +1562,7 @@ describe('POST /api/auth/login', () => {
     const res = await request(app).post('/api/auth/login')
       .send({ email: INPUT.email, password: INPUT.password })
     expect(res.status).toBe(200)
-    expect(res.headers['set-cookie'][0]).toContain('mira_session=')
+    expect(res.headers['set-cookie'][0]).toContain('trail_session=')
   })
 
   it('returns 401 for a wrong password', async () => {
@@ -1663,7 +1663,7 @@ export function requireUser(db: Kysely<Database>) {
 ```ts
 import { Router } from 'express'
 import type { Kysely } from 'kysely'
-import { loginSchema, signupSchema } from '@mira/shared'
+import { loginSchema, signupSchema } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { login, signup } from '../services/auth.service.js'
@@ -1750,7 +1750,7 @@ import { config } from './config.js'
 
 /**
  * Builds the app WITHOUT listening, so tests can mount it directly.
- * The db is injected rather than imported so tests use mira_test.
+ * The db is injected rather than imported so tests use trail_test.
  */
 export function buildApp(db: Kysely<Database>): Express {
   const app = express()
@@ -1779,7 +1779,7 @@ import { config } from './config.js'
 
 await migrateToLatest(db)
 buildApp(db).listen(config.port, () => {
-  console.log(`Mira API listening on http://localhost:${config.port}`)
+  console.log(`Trail API listening on http://localhost:${config.port}`)
 })
 ```
 
@@ -1849,16 +1849,16 @@ describe('POST /api/projects', () => {
   it('creates a project in the personal workspace', async () => {
     const agent = await signedInAgent()
     const res = await agent.post('/api/projects')
-      .send({ name: 'Mira', key: 'MIRA' })
+      .send({ name: 'Trail', key: 'TRAIL' })
     expect(res.status).toBe(201)
-    expect(res.body.key).toBe('MIRA')
-    expect(res.body.name).toBe('Mira')
+    expect(res.body.key).toBe('TRAIL')
+    expect(res.body.name).toBe('Trail')
   })
 
   it('uppercases the key', async () => {
     const agent = await signedInAgent()
-    const res = await agent.post('/api/projects').send({ name: 'Mira', key: 'mira' })
-    expect(res.body.key).toBe('MIRA')
+    const res = await agent.post('/api/projects').send({ name: 'Trail', key: 'trail' })
+    expect(res.body.key).toBe('TRAIL')
   })
 
   it('rejects a key with punctuation', async () => {
@@ -1869,8 +1869,8 @@ describe('POST /api/projects', () => {
 
   it('rejects a duplicate key in the same workspace', async () => {
     const agent = await signedInAgent()
-    await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
-    const res = await agent.post('/api/projects').send({ name: 'Other', key: 'MIRA' })
+    await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
+    const res = await agent.post('/api/projects').send({ name: 'Other', key: 'TRAIL' })
     expect(res.status).toBe(409)
     expect(res.body.error.code).toBe('KEY_TAKEN')
   })
@@ -1884,7 +1884,7 @@ describe('POST /api/projects', () => {
 describe('GET /api/projects', () => {
   it('lists only the caller\'s own projects', async () => {
     const mine = await signedInAgent()
-    await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    await mine.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
 
     const other = request.agent(app)
     await other.post('/api/auth/signup').send({
@@ -1894,22 +1894,22 @@ describe('GET /api/projects', () => {
 
     const res = await mine.get('/api/projects')
     expect(res.status).toBe(200)
-    expect(res.body.map((p: any) => p.key)).toEqual(['MIRA'])
+    expect(res.body.map((p: any) => p.key)).toEqual(['TRAIL'])
   })
 })
 
 describe('GET /api/projects/:id', () => {
   it('returns a project the caller can see', async () => {
     const agent = await signedInAgent()
-    const created = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const created = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     const res = await agent.get(`/api/projects/${created.body.id}`)
     expect(res.status).toBe(200)
-    expect(res.body.key).toBe('MIRA')
+    expect(res.body.key).toBe('TRAIL')
   })
 
   it('returns 404 — NOT 403 — for someone else\'s project', async () => {
     const mine = await signedInAgent()
-    const created = await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const created = await mine.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
 
     const other = request.agent(app)
     await other.post('/api/auth/signup').send({
@@ -1934,7 +1934,7 @@ describe('projectContext', () => {
     const ws = await testDb.selectFrom('workspaces').select('id')
       .where('owner_id', '=', u.id).executeTakeFirstOrThrow()
     const p = await testDb.insertInto('projects')
-      .values({ workspace_id: ws.id, name: 'Mira', key: 'MIRA' })
+      .values({ workspace_id: ws.id, name: 'Trail', key: 'TRAIL' })
       .returning('id').executeTakeFirstOrThrow()
 
     expect(await projectContext(testDb, u.id, p.id))
@@ -1947,7 +1947,7 @@ describe('projectContext', () => {
     const ws = await testDb.selectFrom('workspaces').select('id')
       .where('owner_id', '=', u.id).executeTakeFirstOrThrow()
     const p = await testDb.insertInto('projects')
-      .values({ workspace_id: ws.id, name: 'Mira', key: 'MIRA' })
+      .values({ workspace_id: ws.id, name: 'Trail', key: 'TRAIL' })
       .returning('id').executeTakeFirstOrThrow()
 
     expect(await projectContext(testDb, stranger.id, p.id))
@@ -2016,7 +2016,7 @@ export async function projectContext(
 
 ```ts
 import type { Kysely } from 'kysely'
-import type { CreateProjectInput } from '@mira/shared'
+import type { CreateProjectInput } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { canView } from '../permissions/index.js'
@@ -2119,7 +2119,7 @@ export async function getProject(
 ```ts
 import { Router } from 'express'
 import type { Kysely } from 'kysely'
-import { createProjectSchema } from '@mira/shared'
+import { createProjectSchema } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { requireUser } from '../auth/middleware.js'
@@ -2222,20 +2222,20 @@ const INPUT = {
 async function withProject() {
   const agent = request.agent(app)
   await agent.post('/api/auth/signup').send(INPUT)
-  const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+  const p = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
   return { agent, projectId: p.body.id as string }
 }
 
 beforeEach(async () => { await resetDb() })
 
 describe('POST /api/projects/:id/tickets', () => {
-  it('creates a ticket numbered from 1 and keyed MIRA-1', async () => {
+  it('creates a ticket numbered from 1 and keyed TRAIL-1', async () => {
     const { agent, projectId } = await withProject()
     const res = await agent.post(`/api/projects/${projectId}/tickets`)
       .send({ title: 'Set up the database' })
     expect(res.status).toBe(201)
     expect(res.body.number).toBe(1)
-    expect(res.body.key).toBe('MIRA-1')
+    expect(res.body.key).toBe('TRAIL-1')
     expect(res.body.status).toBe('backlog')
     expect(res.body.priority).toBe('medium')
   })
@@ -2246,7 +2246,7 @@ describe('POST /api/projects/:id/tickets', () => {
       await agent.post(`/api/projects/${projectId}/tickets`).send({ title: t })
     }
     const list = await agent.get(`/api/projects/${projectId}/tickets`)
-    expect(list.body.map((t: any) => t.key)).toEqual(['MIRA-1', 'MIRA-2', 'MIRA-3'])
+    expect(list.body.map((t: any) => t.key)).toEqual(['TRAIL-1', 'TRAIL-2', 'TRAIL-3'])
   })
 
   it('never reuses a number under concurrent creation', async () => {
@@ -2358,7 +2358,7 @@ Expected: FAIL — ticket service not found.
 import type { Kysely } from 'kysely'
 import type {
   CreateTicketInput, TicketPriority, TicketStatus, UpdateTicketInput,
-} from '@mira/shared'
+} from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { canCreateTicket, canEditTicket, canView } from '../permissions/index.js'
@@ -2508,7 +2508,7 @@ export async function updateTicket(
 ```ts
 import { Router } from 'express'
 import type { Kysely } from 'kysely'
-import { createTicketSchema, updateTicketSchema } from '@mira/shared'
+import { createTicketSchema, updateTicketSchema } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { requireUser } from '../auth/middleware.js'
@@ -2622,12 +2622,12 @@ Task 11. The one piece of real client logic, the API client's error unwrapping,
 
 ```json
 {
-  "name": "@mira/client",
+  "name": "@trail/client",
   "private": true,
   "type": "module",
   "scripts": { "dev": "vite", "build": "vite build" },
   "dependencies": {
-    "@mira/shared": "*",
+    "@trail/shared": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1"
@@ -2661,7 +2661,7 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mira</title>
+    <title>Trail</title>
   </head>
   <body>
     <div id="root"></div>
@@ -2779,7 +2779,7 @@ Expected: PASS, 4 tests.
 import type {
   CreateProjectInput, CreateTicketInput, LoginInput, SignupInput,
   TicketPriority, TicketStatus, UpdateTicketInput,
-} from '@mira/shared'
+} from '@trail/shared'
 import { api } from './client.js'
 
 export type PublicUser = { id: string; email: string; displayName: string }
@@ -2849,7 +2849,7 @@ export function useSession() {
 ```tsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signupSchema } from '@mira/shared'
+import { signupSchema } from '@trail/shared'
 import { endpoints } from '../api/endpoints.js'
 import { ApiError } from '../api/client.js'
 
@@ -2884,7 +2884,7 @@ export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
 
   return (
     <form onSubmit={submit}>
-      <h1>Create your Mira account</h1>
+      <h1>Create your Trail account</h1>
       {error && <p role="alert">{error}</p>}
       <label>Name
         <input value={displayName} onChange={e => setDisplayName(e.target.value)}
@@ -2912,7 +2912,7 @@ export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
 ```tsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { loginSchema } from '@mira/shared'
+import { loginSchema } from '@trail/shared'
 import { endpoints } from '../api/endpoints.js'
 import { ApiError } from '../api/client.js'
 
@@ -2945,7 +2945,7 @@ export function LoginPage({ onDone }: { onDone: () => Promise<void> }) {
 
   return (
     <form onSubmit={submit}>
-      <h1>Sign in to Mira</h1>
+      <h1>Sign in to Trail</h1>
       {error && <p role="alert">{error}</p>}
       <label>Email
         <input type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -3044,7 +3044,7 @@ createRoot(document.getElementById('root')!).render(
 ```tsx
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createProjectSchema } from '@mira/shared'
+import { createProjectSchema } from '@trail/shared'
 import { endpoints, type Project, type PublicUser } from '../api/endpoints.js'
 import { ApiError } from '../api/client.js'
 
@@ -3078,7 +3078,7 @@ export function ProjectListPage(
   return (
     <main>
       <header>
-        <h1>Mira</h1>
+        <h1>Trail</h1>
         <p>Signed in as {user.displayName}</p>
         <button onClick={async () => { await endpoints.logout(); await onSignOut() }}>
           Sign out
@@ -3103,7 +3103,7 @@ export function ProjectListPage(
         </label>
         <label>Key
           <input value={key} onChange={e => setKey(e.target.value)}
-                 placeholder="MIRA" required />
+                 placeholder="TRAIL" required />
         </label>
         <button type="submit">Create project</button>
       </form>
@@ -3171,7 +3171,7 @@ export function BoardPage() {
 `client/src/components/Board.tsx`:
 
 ```tsx
-import { TICKET_STATUSES, type TicketStatus } from '@mira/shared'
+import { TICKET_STATUSES, type TicketStatus } from '@trail/shared'
 import type { Ticket } from '../api/endpoints.js'
 
 const LABELS: Record<TicketStatus, string> = {
@@ -3227,7 +3227,7 @@ export function Board(
 
 ```tsx
 import { useState } from 'react'
-import { createTicketSchema } from '@mira/shared'
+import { createTicketSchema } from '@trail/shared'
 import { endpoints, type Ticket } from '../api/endpoints.js'
 import { ApiError } from '../api/client.js'
 
@@ -3278,10 +3278,10 @@ export function NewTicketForm(
 
 - [ ] **Step 4: Run it and check it by hand**
 
-In one terminal: `npm run dev --workspace @mira/server`
-In another: `npm run dev --workspace @mira/client`
+In one terminal: `npm run dev --workspace @trail/server`
+In another: `npm run dev --workspace @trail/client`
 
-Open `http://localhost:5173`, sign up, create a project keyed `MIRA`, add a
+Open `http://localhost:5173`, sign up, create a project keyed `TRAIL`, add a
 ticket, and move it from Backlog to In progress. Reload the page and confirm
 the ticket is still there in the new column — that is the "data survives a
 restart" requirement.
@@ -3326,7 +3326,7 @@ export default defineConfig({
   testDir: './e2e',
   use: { baseURL: 'http://localhost:5173' },
   // Both servers must already be running. Starting them here would need the
-  // test database, and this suite deliberately runs against mira_dev.
+  // test database, and this suite deliberately runs against trail_dev.
   webServer: undefined,
 })
 ```
@@ -3340,7 +3340,7 @@ Add to the root `package.json` scripts: `"e2e": "playwright test"`.
 ```ts
 import { test, expect } from '@playwright/test'
 
-// A unique email per run, since this hits mira_dev rather than a wiped
+// A unique email per run, since this hits trail_dev rather than a wiped
 // test database.
 const stamp = Date.now()
 const EMAIL = `smoke-${stamp}@example.com`
@@ -3354,7 +3354,7 @@ test('sign up, create a project, create a ticket, move it to Done', async ({ pag
   await page.getByLabel('Password').fill('correct horse battery')
   await page.getByRole('button', { name: 'Create account' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Mira' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Trail' })).toBeVisible()
 
   await page.getByLabel('Name').fill('Smoke Project')
   await page.getByLabel('Key').fill(KEY)
@@ -3392,13 +3392,13 @@ git add playwright.config.ts e2e/ package.json
 git commit -m "test: add the end-to-end smoke path for the walking skeleton"
 ```
 
-- [ ] **Step 6: THE DOGFOODING GATE — open Mira and file the rest of the work**
+- [ ] **Step 6: THE DOGFOODING GATE — open Trail and file the rest of the work**
 
 This is what INC 1 was for. It is not optional decoration; it is the acceptance
 criterion from spec §1.1.
 
 1. Run both dev servers and sign up with your real account.
-2. Create a project named **Mira** with the key **MIRA**.
+2. Create a project named **Trail** with the key **TRAIL**.
 3. Create one ticket per remaining increment, in `backlog`:
    - `INC 2 — Many projects, and ticket detail`
    - `INC 3 — Epics`
@@ -3408,9 +3408,9 @@ criterion from spec §1.1.
    - `INC 7 — Project-level guests`
    - `INC 8 — Visual pass and accessibility`
    - `INC 9 — Deploy`
-4. Move `MIRA-1` to `in_progress` when you start INC 2.
+4. Move `TRAIL-1` to `in_progress` when you start INC 2.
 
-**INC 1 is complete when the remaining work lives in Mira rather than in a
+**INC 1 is complete when the remaining work lives in Trail rather than in a
 markdown file.** From here, the plan for each increment is written against the
 ticket, and the board is the source of truth.
 

@@ -5,7 +5,7 @@ import { requireUser } from '../auth/middleware.js'
 import { listMyTasks } from '../services/ticket.service.js'
 
 /**
- * Neon Auth owns signup, login, logout and password reset now, so Mira
+ * Neon Auth owns signup, login, logout and password reset now, so Trail
  * exposes none of them. All that remains is "who am I", which doubles as the
  * call that provisions a first-time user via requireUser.
  */

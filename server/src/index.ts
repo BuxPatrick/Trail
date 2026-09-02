@@ -5,5 +5,5 @@ import { config } from './config.js'
 
 await migrateToLatest(db)
 buildApp(db).listen(config.port, () => {
-  console.log(`Mira API listening on http://localhost:${config.port}`)
+  console.log(`Trail API listening on http://localhost:${config.port}`)
 })

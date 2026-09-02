@@ -15,8 +15,8 @@ const unauthenticated = () =>
   new AppError('NOT_AUTHENTICATED', 'Sign in to continue.', 401)
 
 /**
- * Verifies the Neon Auth bearer token and resolves it to a Mira user,
- * provisioning that user on first sight. Sets req.userId to Mira's own uuid,
+ * Verifies the Neon Auth bearer token and resolves it to a Trail user,
+ * provisioning that user on first sight. Sets req.userId to Trail's own uuid,
  * so every downstream service is unchanged from the session-cookie era.
  */
 export function requireUser(db: Kysely<Database>) {

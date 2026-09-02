@@ -10,7 +10,7 @@ import { config } from './config.js'
 
 /**
  * Builds the app WITHOUT listening, so tests can mount it directly.
- * The db is injected rather than imported so tests use mira_test.
+ * The db is injected rather than imported so tests use trail_test.
  */
 export function buildApp(db: Kysely<Database>): Express {
   const app = express()

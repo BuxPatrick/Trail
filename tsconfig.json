@@ -20,7 +20,7 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@mira/shared": [
+      "@trail/shared": [
         "./shared/src/index.ts"
       ]
     }

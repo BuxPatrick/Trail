@@ -1,7 +1,7 @@
 import type {
   CreateProjectInput, CreateTicketInput,
   TicketPriority, TicketStatus, UpdateProjectInput, UpdateTicketInput,
-} from '@mira/shared'
+} from '@trail/shared'
 import { api } from './client.js'
 
 export type PublicUser = { id: string; email: string; displayName: string }

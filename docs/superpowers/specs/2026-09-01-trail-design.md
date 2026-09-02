@@ -1,4 +1,4 @@
-# Mira — Design Specification
+# Trail — Design Specification
 
 - **Date:** 2026-09-01
 - **Author:** Patrick A. Asamoah (BuxPatrick)
@@ -8,13 +8,13 @@
 
 ## 1. Purpose
 
-Mira is a project manager and tracker in the spirit of Jira, built from scratch
+Trail is a project manager and tracker in the spirit of Jira, built from scratch
 as a learning project. It is not intended to clone Jira; Jira is the motivation,
 not the specification.
 
 Four goals were stated, and all four are in scope:
 
-1. **A tool actually used daily.** Mira must be good enough to track real work.
+1. **A tool actually used daily.** Trail must be good enough to track real work.
 2. **Learning full-stack development end to end** — frontend, backend, database,
    auth, deployment.
 3. **Learning backend and system design** — data modelling, permissions, API
@@ -29,10 +29,10 @@ carry the learning.
 
 ### 1.1 The governing constraint: dogfooding
 
-Mira must become the tracker for its own remaining construction. Increment 1 is
-therefore not a demo — it must be complete enough to hold Mira's own backlog, so
-that increments 2 through 9 are filed inside Mira as tickets and worked from
-Mira's own board.
+Trail must become the tracker for its own remaining construction. Increment 1 is
+therefore not a demo — it must be complete enough to hold Trail's own backlog, so
+that increments 2 through 9 are filed inside Trail as tickets and worked from
+Trail's own board.
 
 This single constraint drives two decisions that appear throughout this document:
 increments are sliced **vertically** (a thin line through every layer) rather
@@ -62,7 +62,7 @@ cost:
   users.
 - **Comments, attachments, sprints, story points, workflows, custom fields,
   notifications, and search across workspaces.** These are Jira features, not
-  Mira requirements.
+  Trail requirements.
 
 ---
 
@@ -80,7 +80,7 @@ User ─────< WorkspaceMember >───── Workspace
                                      │
                                      └──< Project
                                             │  mode: null = inherit workspace
-                                            │  key:  "MIRA"  →  MIRA-1, MIRA-2…
+                                            │  key:  "TRAIL"  →  TRAIL-1, TRAIL-2…
                                             │
                                             ├──< Epic    (optional container)
                                             └──< Ticket
@@ -152,7 +152,7 @@ Primary key `(workspace_id, user_id)`.
 | id | uuid | primary key |
 | workspace_id | uuid | → workspaces |
 | name | text | not null |
-| key | text | e.g. `MIRA`; unique per workspace |
+| key | text | e.g. `TRAIL`; unique per workspace |
 | description | text | nullable |
 | mode | text | nullable — **null means inherit the workspace** |
 | ticket_counter | int | not null, default 0 |
@@ -200,10 +200,10 @@ on the first two columns.
 
 ### 3.2 Ticket keys
 
-Tickets are addressed as `MIRA-14`: the project's `key` plus the ticket's
+Tickets are addressed as `TRAIL-14`: the project's `key` plus the ticket's
 per-project `number`. Keys exist because they make the tracker usable in
-conversation and in commit messages — "I'm on MIRA-14" rather than "the one about
-invites" — which matters directly given Mira is used to build Mira.
+conversation and in commit messages — "I'm on TRAIL-14" rather than "the one about
+invites" — which matters directly given Trail is used to build Trail.
 
 The counter is allocated inside the same transaction as the ticket insert:
 
@@ -307,7 +307,7 @@ handlers, and so the rules are testable without HTTP.
 ## 5. Architecture
 
 ```
-mira/
+trail/
 ├─ client/          React + TypeScript + Vite
 │   ├─ src/api/         one typed fetch wrapper per resource
 │   ├─ src/routes/      pages
@@ -423,7 +423,7 @@ explicitly. This is the most valuable part of the suite: it covers the one area
 where a bug is a security bug, and section 4.4 exists precisely to make it cheap.
 When increment 7 adds guests, these tests are what prove nothing else broke.
 
-**Integration — services against a real PostgreSQL.** A `mira_test` database
+**Integration — services against a real PostgreSQL.** A `trail_test` database
 with migrations applied and tables truncated between tests. Not a mocked
 database: a mock will happily accept a foreign key that does not exist and a
 cascade that would never fire, so it passes while production breaks. This layer
@@ -445,17 +445,17 @@ library rather than to this codebase.
 ## 9. Increment ladder
 
 The rule for every rung: **the application still runs and is still usable at the
-end of it.** An increment that would leave Mira broken is sliced wrongly.
+end of it.** An increment that would leave Trail broken is sliced wrongly.
 
 ### INC 1 — A tracker that can be used *(the dogfooding gate)*
 
 Sign up, log in, log out. Personal workspace created automatically. Create one
 project with a key. Create tickets with titles and descriptions, and move them
-across the six statuses on a board. Tickets get real keys (`MIRA-1`). Data
+across the six statuses on a board. Tickets get real keys (`TRAIL-1`). Data
 survives a restart.
 
-**Done when:** the Mira project is created inside Mira, increments 2–9 are filed
-as tickets, and work continues from Mira's own board.
+**Done when:** the Trail project is created inside Trail, increments 2–9 are filed
+as tickets, and work continues from Trail's own board.
 
 *Not included:* teams, invites, assignees, epics, modes, styling beyond legible.
 

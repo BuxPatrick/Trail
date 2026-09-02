@@ -1,4 +1,4 @@
-import type { Mode, Role } from '@mira/shared'
+import type { Mode, Role } from '@trail/shared'
 
 /**
  * Everything the permission rules need, and nothing else. Callers resolve

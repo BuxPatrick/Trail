@@ -1,5 +1,5 @@
 import type { Kysely } from 'kysely'
-import type { CreateProjectInput, UpdateProjectInput } from '@mira/shared'
+import type { CreateProjectInput, UpdateProjectInput } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { canManageProject, canView } from '../permissions/index.js'
@@ -50,7 +50,7 @@ async function nextProjectKey(
   }
 
   throw new AppError('KEY_SPACE_EXHAUSTED',
-    'Mira could not generate a project key for that name.', 409)
+    'Trail could not generate a project key for that name.', 409)
 }
 
 export async function personalWorkspaceId(

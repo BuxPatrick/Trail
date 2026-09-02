@@ -1,12 +1,12 @@
 {
-  "name": "@mira/server",
+  "name": "@trail/server",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "@mira/shared": "*",
+    "@trail/shared": "*",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",

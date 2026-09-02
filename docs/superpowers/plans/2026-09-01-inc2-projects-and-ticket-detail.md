@@ -1,14 +1,14 @@
-# Mira INC 2 — Many projects, and ticket detail
+# Trail INC 2 — Many projects, and ticket detail
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make Mira usable across several projects at once, and let a ticket be opened, edited in full, and deleted — rather than only created and dragged between columns.
+**Goal:** Make Trail usable across several projects at once, and let a ticket be opened, edited in full, and deleted — rather than only created and dragged between columns.
 
 **Architecture:** No new architecture. INC 2 extends the layering INC 1 established: a service per resource holding the rules, thin routes above it, every permission decision routed through `server/src/permissions/index.ts`. The one structurally new thing is that `canManageProject` finally gets its first caller.
 
 **Tech Stack:** Unchanged from INC 1.
 
-**Spec:** `docs/superpowers/specs/2026-09-01-mira-design.md` (§9, INC 2)
+**Spec:** `docs/superpowers/specs/2026-09-01-trail-design.md` (§9, INC 2)
 **Predecessor:** `docs/superpowers/plans/2026-09-01-inc1-walking-skeleton.md`
 
 ## Global Constraints
@@ -52,7 +52,7 @@ e2e/smoke.spec.ts                         MODIFY  extend through detail + delete
 
 **Interfaces:**
 - Consumes: `projectContext`, `canManageProject`, `AppError`.
-- Produces: `updateProjectSchema` (`{ name?, description?, archived? }`, at least one key) and `UpdateProjectInput` in `@mira/shared`; `updateProject(db, userId, projectId, input): Promise<ProjectSummary>`; `PATCH /api/projects/:id`.
+- Produces: `updateProjectSchema` (`{ name?, description?, archived? }`, at least one key) and `UpdateProjectInput` in `@trail/shared`; `updateProject(db, userId, projectId, input): Promise<ProjectSummary>`; `PATCH /api/projects/:id`.
 
 - [ ] **Step 1: Add the schema to `shared/src/schemas.ts`**
 
@@ -71,17 +71,17 @@ export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
 describe('PATCH /api/projects/:id', () => {
   it('renames a project', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     const res = await agent.patch(`/api/projects/${p.body.id}`)
-      .send({ name: 'Mira Tracker' })
+      .send({ name: 'Trail Tracker' })
     expect(res.status).toBe(200)
-    expect(res.body.name).toBe('Mira Tracker')
-    expect(res.body.key).toBe('MIRA')
+    expect(res.body.name).toBe('Trail Tracker')
+    expect(res.body.key).toBe('TRAIL')
   })
 
   it('archives a project, removing it from the list but not the database', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     await agent.patch(`/api/projects/${p.body.id}`).send({ archived: true })
 
     expect((await agent.get('/api/projects')).body).toEqual([])
@@ -94,7 +94,7 @@ describe('PATCH /api/projects/:id', () => {
 
   it('un-archives a project', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     await agent.patch(`/api/projects/${p.body.id}`).send({ archived: true })
     await agent.patch(`/api/projects/${p.body.id}`).send({ archived: false })
     expect((await agent.get('/api/projects')).body).toHaveLength(1)
@@ -102,13 +102,13 @@ describe('PATCH /api/projects/:id', () => {
 
   it('rejects an empty patch', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     expect((await agent.patch(`/api/projects/${p.body.id}`).send({})).status).toBe(400)
   })
 
   it('returns 404 for a project belonging to someone else', async () => {
     const mine = await signedInAgent()
-    const p = await mine.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await mine.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     const other = await signedInAgent(OTHER)
     const res = await other.patch(`/api/projects/${p.body.id}`).send({ name: 'Hijacked' })
     expect(res.status).toBe(404)
@@ -116,9 +116,9 @@ describe('PATCH /api/projects/:id', () => {
 
   it('does NOT change the key', async () => {
     const agent = await signedInAgent()
-    const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
+    const p = await agent.post('/api/projects').send({ name: 'Trail', key: 'TRAIL' })
     await agent.patch(`/api/projects/${p.body.id}`).send({ name: 'X', key: 'ZZZ' } as any)
-    expect((await agent.get(`/api/projects/${p.body.id}`)).body.key).toBe('MIRA')
+    expect((await agent.get(`/api/projects/${p.body.id}`)).body.key).toBe('TRAIL')
   })
 })
 ```
@@ -160,7 +160,7 @@ export async function updateProject(
 }
 ```
 
-The `key` is deliberately absent: ticket keys like `MIRA-14` are already written
+The `key` is deliberately absent: ticket keys like `TRAIL-14` are already written
 in commits and conversations, so renaming a project must not silently
 invalidate them. Changing a key would be a migration, not an edit.
 
@@ -199,7 +199,7 @@ describe('GET /api/tickets/:id', () => {
       .send({ title: 'Set up the database', description: 'Postgres + Kysely' })
     const res = await agent.get(`/api/tickets/${t.body.id}`)
     expect(res.status).toBe(200)
-    expect(res.body.key).toBe('MIRA-1')
+    expect(res.body.key).toBe('TRAIL-1')
     expect(res.body.description).toBe('Postgres + Kysely')
   })
 
@@ -231,8 +231,8 @@ describe('DELETE /api/tickets/:id', () => {
     await agent.delete(`/api/tickets/${t.body.id}`)
     const next = await agent.post(`/api/projects/${projectId}/tickets`)
       .send({ title: 'Two' })
-    // The counter never rewinds: MIRA-1 must not come to mean a second thing.
-    expect(next.body.key).toBe('MIRA-2')
+    // The counter never rewinds: TRAIL-1 must not come to mean a second thing.
+    expect(next.body.key).toBe('TRAIL-2')
   })
 
   it('returns 404 for a ticket the caller cannot see', async () => {
@@ -342,7 +342,7 @@ In `client/src/components/Board.tsx`, wrap the key in a link:
 `Board` now needs `import { Link } from 'react-router-dom'`.
 
 - [ ] **Step 4: Add a priority select to `NewTicketForm`**, defaulting to
-`medium`, using `TICKET_PRIORITIES` from `@mira/shared`.
+`medium`, using `TICKET_PRIORITIES` from `@trail/shared`.
 
 - [ ] **Step 5: Register the route in `client/src/main.tsx`**
 
@@ -390,7 +390,7 @@ npx tsc --noEmit      # exit 0
 npx playwright test   # with both dev servers running
 ```
 
-- [ ] **Step 3: Commit, and move MIRA-2 to Done in Mira itself.**
+- [ ] **Step 3: Commit, and move TRAIL-2 to Done in Trail itself.**
 
 ---
 

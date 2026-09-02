@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import type { Kysely } from 'kysely'
-import { createProjectSchema, updateProjectSchema } from '@mira/shared'
+import { createProjectSchema, updateProjectSchema } from '@trail/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { requireUser } from '../auth/middleware.js'

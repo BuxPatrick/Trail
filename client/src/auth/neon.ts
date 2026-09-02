@@ -17,7 +17,7 @@ export const neon = createAuthClient(AUTH_URL, {
 })
 
 /**
- * The bearer token for Mira's own API.
+ * The bearer token for Trail's own API.
  *
  * Signing in leaves a session on the Neon Auth origin; exchanging it at
  * /token yields the JWT that our Express server verifies against the

@@ -3,10 +3,10 @@ import { endpoints, type PublicUser } from '../api/endpoints.js'
 import { clearAccessToken, refreshAccessToken } from './neon.js'
 
 /**
- * Bridges Neon Auth to Mira's own user record.
+ * Bridges Neon Auth to Trail's own user record.
  *
- * Neon owns the credential; Mira owns the profile, workspace and membership.
- * Fetching /api/me is what provisions that Mira-side state on first sight, so
+ * Neon owns the credential; Trail owns the profile, workspace and membership.
+ * Fetching /api/me is what provisions that Trail-side state on first sight, so
  * this hook is both "who am I" and "make sure I exist here".
  */
 export function useSession() {

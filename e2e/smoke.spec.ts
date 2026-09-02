@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-// A unique email per run, since this hits mira_dev rather than a
+// A unique email per run, since this hits trail_dev rather than a
 // wiped test database.
 const stamp = Date.now()
 const EMAIL = `smoke-${stamp}@example.com`
@@ -11,7 +11,7 @@ test('full ticket lifecycle: sign up, project, create, move, edit, delete', asyn
   await page.goto('/')
   await expect(page).toHaveURL(/\/login$/)
   await page.getByRole('link', { name: 'Create an account' }).click()
-  await expect(page.getByRole('heading', { name: 'Create your Mira account' }))
+  await expect(page.getByRole('heading', { name: 'Create your Trail account' }))
     .toBeVisible()
 
   await page.getByLabel('Name').fill('Smoke Test')
