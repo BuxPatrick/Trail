@@ -15,7 +15,8 @@
       "DOM.Iterable"
     ],
     "types": [
-      "node"
+      "node",
+      "vite/client"
     ],
     "baseUrl": ".",
     "paths": {

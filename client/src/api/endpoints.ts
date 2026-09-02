@@ -1,5 +1,5 @@
 import type {
-  CreateProjectInput, CreateTicketInput, LoginInput, SignupInput,
+  CreateProjectInput, CreateTicketInput,
   TicketPriority, TicketStatus, UpdateProjectInput, UpdateTicketInput,
 } from '@mira/shared'
 import { api } from './client.js'
@@ -20,9 +20,6 @@ export type Ticket = {
 const post = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) })
 
 export const endpoints = {
-  signup: (i: SignupInput) => api<PublicUser>('/auth/signup', post(i)),
-  login: (i: LoginInput) => api<PublicUser>('/auth/login', post(i)),
-  logout: () => api<void>('/auth/logout', { method: 'POST' }),
   me: () => api<PublicUser>('/me'),
 
   listProjects: () => api<Project[]>('/projects'),

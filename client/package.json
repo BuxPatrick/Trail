@@ -2,9 +2,13 @@
   "name": "@mira/client",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
   "dependencies": {
     "@mira/shared": "*",
+    "@neondatabase/neon-js": "^0.7.0-beta",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1"

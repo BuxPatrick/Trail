@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signupSchema } from '@mira/shared'
-import { endpoints } from '../api/endpoints.js'
-import { ApiError } from '../api/client.js'
+import { neon } from '../auth/neon.js'
 
 export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
   const [email, setEmail] = useState('')
@@ -23,11 +22,18 @@ export function SignupPage({ onDone }: { onDone: () => Promise<void> }) {
     }
     setBusy(true)
     try {
-      await endpoints.signup(parsed.data)
+      // Neon Auth owns the credential. onDone() then fetches /api/me, which
+      // is what provisions this user's Mira record and personal workspace.
+      const { error: authError } = await neon.signUp.email({
+        email: parsed.data.email,
+        password: parsed.data.password,
+        name: parsed.data.displayName,
+      })
+      if (authError) { setError(authError.message ?? 'Could not create that account.'); return }
       await onDone()
       navigate('/')
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong.')
+    } catch {
+      setError('Something went wrong.')
     } finally {
       setBusy(false)
     }

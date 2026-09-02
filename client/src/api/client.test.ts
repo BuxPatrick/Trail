@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { api, ApiError } from './client.js'
 
+vi.mock('../auth/neon.js', () => ({ getAccessToken: () => 'test-token' }))
+
 afterEach(() => { vi.unstubAllGlobals() })
 
 function stubFetch(status: number, body: unknown) {
@@ -17,11 +19,11 @@ describe('api', () => {
     expect(await api('/me')).toEqual({ id: '1', email: 'p@example.com' })
   })
 
-  it('always sends credentials so the session cookie travels', async () => {
+  it('attaches the Neon bearer token', async () => {
     stubFetch(200, {})
     await api('/me')
     const init = (fetch as any).mock.calls[0][1]
-    expect(init.credentials).toBe('include')
+    expect(init.headers.Authorization).toBe('Bearer test-token')
   })
 
   it('throws an ApiError carrying the server code and status', async () => {

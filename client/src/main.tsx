@@ -10,7 +10,7 @@ import { BoardPage } from './routes/BoardPage.js'
 import { TicketPage } from './routes/TicketPage.js'
 
 function App() {
-  const { user, loading, refresh } = useSession()
+  const { user, loading, refresh, signOut } = useSession()
 
   if (loading) return <p>Loading...</p>
 
@@ -26,7 +26,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<ProjectListPage user={user} onSignOut={refresh} />} />
+      <Route path="/" element={<ProjectListPage user={user} onSignOut={signOut} />} />
       <Route path="/projects/:id" element={<BoardPage />} />
       <Route path="/tickets/:id" element={<TicketPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

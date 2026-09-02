@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { loginSchema } from '@mira/shared'
-import { endpoints } from '../api/endpoints.js'
-import { ApiError } from '../api/client.js'
+import { neon } from '../auth/neon.js'
 
 export function LoginPage({ onDone }: { onDone: () => Promise<void> }) {
   const [email, setEmail] = useState('')
@@ -21,11 +20,15 @@ export function LoginPage({ onDone }: { onDone: () => Promise<void> }) {
     }
     setBusy(true)
     try {
-      await endpoints.login(parsed.data)
+      const { error: authError } = await neon.signIn.email({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      })
+      if (authError) { setError('Email or password is incorrect.'); return }
       await onDone()
       navigate('/')
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong.')
+    } catch {
+      setError('Something went wrong.')
     } finally {
       setBusy(false)
     }

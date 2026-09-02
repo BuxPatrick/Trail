@@ -1,6 +1,8 @@
-// Relative on purpose: same-origin in dev (via the Vite proxy) and in
-// production (via a Vercel rewrite), so the session cookie is never a
-// cross-site cookie and SameSite=Lax keeps working.
+import { getAccessToken } from '../auth/neon.js'
+
+// Relative: the Vite proxy in dev, a Vercel rewrite in production. Auth no
+// longer depends on this being same-origin - it is a bearer token now - but
+// one origin still keeps the deployment simple.
 const BASE = '/api'
 
 export class ApiError extends Error {
@@ -11,10 +13,15 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+  // Auth travels as a Neon Auth bearer token, not a cookie, so there is
+  // nothing cross-site to negotiate.
+  const token = getAccessToken()
   const res = await fetch(`${BASE}${path}`, {
-    // Without this the session cookie is not sent across the dev origins.
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...(init.headers ?? {}) },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init.headers ?? {}),
+    },
     ...init,
   })
 

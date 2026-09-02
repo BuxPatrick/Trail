@@ -65,9 +65,7 @@ export function ProjectListPage(
       <header className="topbar">
         <h1>Mira</h1>
         <p>Signed in as {user.displayName}</p>
-        <button onClick={async () => { await endpoints.logout(); await onSignOut() }}>
-          Sign out
-        </button>
+        <button onClick={() => void onSignOut()}>Sign out</button>
       </header>
 
       <h2>Projects</h2>
