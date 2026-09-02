@@ -159,6 +159,7 @@ export async function listMyTasks(
       end
     `, 'asc')
     .orderBy('tickets.created_at', 'asc')
+    .limit(100)
     .execute()
 
   return rows.map(r => toTaskView(r as MyTaskRow))
