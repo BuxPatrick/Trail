@@ -47,17 +47,19 @@ export function BoardPage() {
         </label>
       )}
 
-      <NewTicketForm
-        projectId={id}
-        onCreated={t => setTickets(prev => [...prev, t])}
-      />
-
+      {/* Board first: on a phone the create form would otherwise fill the
+          whole screen and push the board you came to look at below the fold. */}
       <Board
         tickets={tickets}
         onStatusChange={async (ticketId, status) => {
           const updated = await endpoints.updateTicket(ticketId, { status })
           setTickets(prev => prev.map(t => (t.id === ticketId ? updated : t)))
         }}
+      />
+
+      <NewTicketForm
+        projectId={id}
+        onCreated={t => setTickets(prev => [...prev, t])}
       />
     </main>
   )

@@ -11,6 +11,7 @@ export function ProjectListPage(
   const [name, setName] = useState('')
   const [key, setKey] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [renameTo, setRenameTo] = useState('')
 
@@ -47,18 +48,21 @@ export function ProjectListPage(
       setError(parsed.error.issues[0]?.message ?? 'Check the details.')
       return
     }
+    setBusy(true)
     try {
       const created = await endpoints.createProject(parsed.data)
       setProjects(p => [...p, created])
       setName(''); setKey('')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong.')
+    } finally {
+      setBusy(false)
     }
   }
 
   return (
     <main>
-      <header>
+      <header className="topbar">
         <h1>Mira</h1>
         <p>Signed in as {user.displayName}</p>
         <button onClick={async () => { await endpoints.logout(); await onSignOut() }}>
@@ -68,7 +72,7 @@ export function ProjectListPage(
 
       <h2>Projects</h2>
       {projects.length === 0 && <p>No projects yet. Create the first one below.</p>}
-      <ul>
+      <ul className="project-list">
         {projects.map(p => (
           <li key={p.id}>
             <Link to={`/projects/${p.id}`}>{p.key} - {p.name}</Link>
@@ -106,7 +110,9 @@ export function ProjectListPage(
           <input value={key} onChange={e => setKey(e.target.value)}
                  placeholder="MIRA" required />
         </label>
-        <button type="submit">Create project</button>
+        <button type="submit" disabled={busy}>
+          {busy ? 'Creating...' : 'Create project'}
+        </button>
       </form>
     </main>
   )

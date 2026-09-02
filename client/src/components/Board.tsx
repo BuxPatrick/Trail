@@ -18,15 +18,15 @@ export function Board(
   },
 ) {
   return (
-    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+    <div className="board">
       {TICKET_STATUSES.map(status => {
         const column = tickets.filter(t => t.status === status)
         return (
-          <section key={status} aria-label={LABELS[status]} style={{ flex: 1 }}>
+          <section key={status} aria-label={LABELS[status]} className="board-column">
             <h2>{LABELS[status]} ({column.length})</h2>
             <ul>
               {column.map(t => (
-                <li key={t.id}>
+                <li key={t.id} className="ticket">
                   <Link to={`/tickets/${t.id}`}><strong>{t.key}</strong></Link> {t.title}
                   <label>
                     Status for {t.key}

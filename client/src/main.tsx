@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './styles.css'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useSession } from './auth/useSession.js'
 import { SignupPage } from './routes/SignupPage.js'

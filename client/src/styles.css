@@ -1,0 +1,198 @@
+/* Mira - INC 8 (pulled forward for the phone deploy).
+   Mobile-first: every rule here is the small-screen case, and the few
+   media queries below only widen things once there is room. */
+
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --border: #e2e2e5;
+  --text: #1a1a1e;
+  --muted: #6b6b76;
+  --accent: #4338ca;
+  --accent-text: #ffffff;
+  --danger: #b42318;
+  --radius: 10px;
+  --gap: 0.75rem;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131316;
+    --surface: #1c1c21;
+    --border: #2e2e35;
+    --text: #ececf1;
+    --muted: #9a9aa6;
+    --accent: #8b85f5;
+    --accent-text: #16161a;
+    --danger: #ff6b60;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* 16px minimum, or iOS Safari zooms the page when a field is focused. */
+}
+
+main { padding: 1rem; max-width: 1400px; margin: 0 auto; }
+
+h1 { font-size: 1.5rem; margin: 0.5rem 0; }
+h2 { font-size: 1.1rem; margin: 0.75rem 0 0.5rem; }
+h3 { font-size: 1rem; margin: 0.5rem 0; }
+
+a { color: var(--accent); }
+
+/* ---- forms ---------------------------------------------------------- */
+
+form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+input, textarea, select {
+  font: inherit;
+  font-size: 16px; /* keep 16px: smaller triggers zoom-on-focus in iOS */
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  width: 100%;
+  min-height: 44px; /* comfortable touch target */
+}
+
+textarea { resize: vertical; }
+
+input:focus-visible, textarea:focus-visible,
+select:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  font-weight: 550;
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button[type="submit"] {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+[role="alert"] { color: var(--danger); font-weight: 550; }
+[role="status"] { color: var(--muted); }
+
+/* ---- app chrome ------------------------------------------------------ */
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.topbar h1 { margin-right: auto; }
+.topbar p { color: var(--muted); font-size: 0.875rem; margin: 0; }
+
+.project-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--gap); }
+.project-list li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.project-list li > a { margin-right: auto; font-weight: 600; }
+.project-list button { font-size: 0.8125rem; min-height: 38px; padding: 0.4rem 0.7rem; }
+
+/* ---- the board ------------------------------------------------------- */
+
+/* Six columns will never fit a phone. Rather than stack them - which buries
+   Done under five other lists - the board scrolls sideways, the pattern
+   people already know from every other tracker. Columns keep a readable
+   minimum width and simply come into view together on a wider screen. */
+.board {
+  display: flex;
+  gap: var(--gap);
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.board-column {
+  flex: 0 0 78vw;
+  max-width: 320px;
+  min-width: 240px;
+  scroll-snap-align: start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+}
+
+.board-column h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.board-column ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+
+.ticket {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  display: grid;
+  gap: 0.4rem;
+}
+.ticket a { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.8125rem; }
+.ticket select { min-height: 38px; padding: 0.3rem 0.5rem; }
+.ticket label { font-size: 0; gap: 0; } /* the label text is for screen readers */
+
+@media (min-width: 900px) {
+  .board-column { flex: 1 1 0; max-width: none; }
+  .board { overflow-x: visible; }
+}
+
+@media (min-width: 700px) {
+  main { padding: 1.5rem; }
+  form { max-width: 620px; }
+}
