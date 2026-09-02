@@ -14,8 +14,11 @@ export type NeonClaims = {
  * refreshes the key set, so this is a local check with no per-request
  * network call after the first.
  */
+// String concatenation, NOT new URL('/.well-known/...', base): a leading
+// slash resolves against the ORIGIN and would silently drop the /neondb/auth
+// path, fetching a 404 and rejecting every valid token.
 const jwks = jose.createRemoteJWKSet(
-  new URL('/.well-known/jwks.json', config.neonAuthUrl),
+  new URL(`${config.neonAuthUrl.replace(/\/$/, '')}/.well-known/jwks.json`),
 )
 
 /** Verifies a bearer token and pulls out the claims Mira needs. */
@@ -34,8 +37,13 @@ export async function verifyToken(token: string): Promise<NeonClaims | null> {
         : (email.split('@')[0] || 'User')
 
     return { neonUserId: sub, email, displayName: name }
-  } catch {
-    // Expired, malformed, wrong signature - all are simply "not authenticated".
+  } catch (err) {
+    // Expired, malformed or wrong-signature tokens are all just "not
+    // authenticated" to the caller - but log the reason, because a
+    // misconfigured JWKS URL looks identical from outside and is otherwise
+    // very hard to tell apart from a genuinely bad token.
+    console.warn('[auth] token verification failed:',
+      err instanceof Error ? err.message : err)
     return null
   }
 }
