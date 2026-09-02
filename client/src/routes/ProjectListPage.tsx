@@ -11,6 +11,31 @@ export function ProjectListPage(
   const [name, setName] = useState('')
   const [key, setKey] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [renaming, setRenaming] = useState<string | null>(null)
+  const [renameTo, setRenameTo] = useState('')
+
+  async function rename(id: string) {
+    setError(null)
+    try {
+      const updated = await endpoints.updateProject(id, { name: renameTo })
+      setProjects(ps => ps.map(p => (p.id === id ? updated : p)))
+      setRenaming(null)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Something went wrong.')
+    }
+  }
+
+  async function archive(id: string) {
+    setError(null)
+    try {
+      await endpoints.updateProject(id, { archived: true })
+      // Archiving only removes it from the default list; the project and all
+      // its tickets remain, which is why this is never called Delete.
+      setProjects(ps => ps.filter(p => p.id !== id))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Something went wrong.')
+    }
+  }
 
   useEffect(() => { void endpoints.listProjects().then(setProjects) }, [])
 
@@ -47,6 +72,26 @@ export function ProjectListPage(
         {projects.map(p => (
           <li key={p.id}>
             <Link to={`/projects/${p.id}`}>{p.key} - {p.name}</Link>
+            {renaming === p.id ? (
+              <>
+                <label>New name for {p.key}
+                  <input value={renameTo}
+                         onChange={e => setRenameTo(e.target.value)} />
+                </label>
+                <button type="button" onClick={() => void rename(p.id)}>Save</button>
+                <button type="button" onClick={() => setRenaming(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                <button type="button"
+                        onClick={() => { setRenaming(p.id); setRenameTo(p.name) }}>
+                  Rename {p.key}
+                </button>
+                <button type="button" onClick={() => void archive(p.id)}>
+                  Archive {p.key}
+                </button>
+              </>
+            )}
           </li>
         ))}
       </ul>
