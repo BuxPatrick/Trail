@@ -11,10 +11,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "playwright test",
-    "dev:server": "npm run dev --workspace @mira/server",
+    "dev:server": "npm run build:shared && npm run dev --workspace @mira/server",
     "dev:client": "npm run dev --workspace @mira/client",
     "migrate": "tsx server/src/migrate-cli.ts",
-    "build": "npm run build --workspace @mira/client"
+    "build": "npm run build:shared && npm run build --workspace @mira/client",
+    "build:shared": "npm run build --workspace @mira/shared"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

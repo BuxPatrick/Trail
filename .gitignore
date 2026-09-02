@@ -8,3 +8,4 @@ test-results/
 .screens/
 .env.local
 .env.*.local
+shared/dist/

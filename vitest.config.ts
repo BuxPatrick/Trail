@@ -1,6 +1,13 @@
 import { defineConfig } from 'vitest/config'
+import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      // Tests always read shared from SOURCE, never from a stale dist build.
+      '@mira/shared': fileURLToPath(new URL('./shared/src/index.ts', import.meta.url)),
+    },
+  },
   test: {
     // Every integration test file shares one mira_test database and each
     // resets it by truncating. Run files one at a time or they wipe each
