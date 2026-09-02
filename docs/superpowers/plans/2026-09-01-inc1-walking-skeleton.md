@@ -886,8 +886,16 @@ Expected: FAIL — helper module not found.
 is empty when Vitest runs the integration tests:
 
 ```ts
-import 'dotenv/config'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { config as loadEnv } from 'dotenv'
 import { z } from 'zod'
+
+// Resolve .env from THIS FILE, not from process.cwd(). Vitest runs from the
+// repo root but `npm run dev --workspace @mira/server` runs from server/, so
+// a cwd-relative lookup works under test and fails when you actually start
+// the server - the worst possible split.
+loadEnv({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env') })
 
 const schema = z.object({
   DATABASE_URL: z.string().url(),
@@ -3358,17 +3366,17 @@ test('sign up, create a project, create a ticket, move it to Done', async ({ pag
   await page.getByRole('button', { name: 'Add ticket' }).click()
 
   const backlog = page.getByRole('region', { name: 'Backlog' })
-  await expect(backlog.getByText(`${KEY}-1`)).toBeVisible()
+  await expect(backlog.getByText(`${KEY}-1`, { exact: true })).toBeVisible()
 
   await page.getByLabel(`Status for ${KEY}-1`).selectOption('done')
 
   const done = page.getByRole('region', { name: 'Done' })
-  await expect(done.getByText(`${KEY}-1`)).toBeVisible()
+  await expect(done.getByText(`${KEY}-1`, { exact: true })).toBeVisible()
 
   // The requirement is persistence, not optimistic UI: reload and re-check.
   await page.reload()
   await expect(page.getByRole('region', { name: 'Done' })
-    .getByText(`${KEY}-1`)).toBeVisible()
+    .getByText(`${KEY}-1`, { exact: true })).toBeVisible()
 })
 ```
 

@@ -2,12 +2,20 @@
   "name": "mira",
   "private": true,
   "type": "module",
-  "workspaces": ["shared", "server", "client"],
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "dev:server": "npm run dev --workspace @mira/server",
+    "dev:client": "npm run dev --workspace @mira/client"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.10.5",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

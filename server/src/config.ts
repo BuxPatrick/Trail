@@ -1,5 +1,13 @@
-import 'dotenv/config'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { config as loadEnv } from 'dotenv'
 import { z } from 'zod'
+
+// Resolve .env from THIS FILE, not from process.cwd(). Vitest runs from the
+// repo root but `npm run dev --workspace @mira/server` runs from server/, so
+// a cwd-relative lookup works under test and fails when you actually start
+// the server - the worst possible split.
+loadEnv({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env') })
 
 const schema = z.object({
   DATABASE_URL: z.string().url(),
