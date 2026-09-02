@@ -1,4 +1,7 @@
-const BASE = 'http://localhost:3001/api'
+// Relative on purpose: same-origin in dev (via the Vite proxy) and in
+// production (via a Vercel rewrite), so the session cookie is never a
+// cross-site cookie and SameSite=Lax keeps working.
+const BASE = '/api'
 
 export class ApiError extends Error {
   constructor(readonly code: string, message: string, readonly status: number) {

@@ -16,6 +16,10 @@ import { config } from './config.js'
 export function buildApp(db: Kysely<Database>): Express {
   const app = express()
 
+  // Behind Vercel's proxy the connection to Express is plain HTTP; without
+  // this, `secure: true` cookies are silently dropped in production.
+  app.set('trust proxy', 1)
+
   // credentials: true is required for the session cookie to cross origins in
   // development, where Vite serves on 5173 and the API on 3001.
   app.use(cors({ origin: config.clientOrigin, credentials: true }))
