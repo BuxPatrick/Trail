@@ -1,27 +1,32 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
-import { testDb, resetDb } from './helpers/db.js'
-import { buildApp } from '../src/app.js'
-import { signup } from '../src/services/auth.service.js'
-import { projectContext } from '../src/services/context.js'
+import { fakeVerifyToken } from './helpers/auth.js'
+
+vi.mock('../src/auth/verify.js', () => ({ verifyToken: fakeVerifyToken }))
+
+const { testDb, resetDb } = await import('./helpers/db.js')
+const { buildApp } = await import('../src/app.js')
+const { PATRICK, AMA } = await import('./helpers/auth.js')
+const { projectContext } = await import('../src/services/context.js')
 
 const app = buildApp(testDb)
-const INPUT = {
-  email: 'patrick@example.com',
-  password: 'correct horse battery',
-  displayName: 'Patrick',
-}
-const OTHER = {
-  email: 'ama@example.com',
-  password: 'correct horse battery',
-  displayName: 'Ama',
+
+/** A supertest caller that carries a Neon bearer token on every request. */
+const as = (token: string) => ({
+  get: (u: string) => request(app).get(u).set('Authorization', `Bearer ${token}`),
+  post: (u: string) => request(app).post(u).set('Authorization', `Bearer ${token}`),
+  patch: (u: string) => request(app).patch(u).set('Authorization', `Bearer ${token}`),
+  delete: (u: string) => request(app).delete(u).set('Authorization', `Bearer ${token}`),
+})
+
+/** Hitting /api/me is what provisions a user, so it doubles as a fixture. */
+async function provision(token: string) {
+  const res = await as(token).get('/api/me')
+  return res.body as { id: string; email: string; displayName: string }
 }
 
-async function signedInAgent(who = INPUT) {
-  const agent = request.agent(app)
-  await agent.post('/api/auth/signup').send(who)
-  return agent
-}
+const signedInAgent = (token: string = PATRICK) => as(token)
+const OTHER = AMA
 
 beforeEach(async () => { await resetDb() })
 
@@ -102,7 +107,7 @@ describe('GET /api/projects/:id', () => {
 
 describe('projectContext', () => {
   it('gives the owner the admin role and the inherited free mode', async () => {
-    const u = await signup(testDb, INPUT)
+    const u = await provision(PATRICK)
     const ws = await testDb.selectFrom('workspaces').select('id')
       .where('owner_id', '=', u.id).executeTakeFirstOrThrow()
     const p = await testDb.insertInto('projects')
@@ -114,8 +119,8 @@ describe('projectContext', () => {
   })
 
   it('gives a non-member a null role', async () => {
-    const u = await signup(testDb, INPUT)
-    const stranger = await signup(testDb, OTHER)
+    const u = await provision(PATRICK)
+    const stranger = await provision(AMA)
     const ws = await testDb.selectFrom('workspaces').select('id')
       .where('owner_id', '=', u.id).executeTakeFirstOrThrow()
     const p = await testDb.insertInto('projects')
@@ -127,13 +132,13 @@ describe('projectContext', () => {
   })
 
   it('returns null when the project does not exist', async () => {
-    const u = await signup(testDb, INPUT)
+    const u = await provision(PATRICK)
     expect(await projectContext(testDb, u.id,
       '00000000-0000-0000-0000-000000000000')).toBeNull()
   })
 
   it('lets a project mode override the workspace mode', async () => {
-    const u = await signup(testDb, INPUT)
+    const u = await provision(PATRICK)
     const ws = await testDb.selectFrom('workspaces').select('id')
       .where('owner_id', '=', u.id).executeTakeFirstOrThrow()
     const p = await testDb.insertInto('projects')

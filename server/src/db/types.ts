@@ -8,17 +8,10 @@ type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>
 export interface UsersTable {
   id: Generated<string>
   email: string
-  password_hash: string
+  /** The `sub` claim from the Neon Auth JWT. How a token becomes a Mira user. */
+  neon_user_id: string
   display_name: string
   created_at: Generated<Timestamp>
-}
-
-export interface SessionsTable {
-  id: string
-  user_id: string
-  created_at: Generated<Timestamp>
-  expires_at: Timestamp
-  user_agent: string | null
 }
 
 export interface WorkspacesTable {
@@ -74,7 +67,6 @@ export interface TicketsTable {
 
 export interface Database {
   users: UsersTable
-  sessions: SessionsTable
   workspaces: WorkspacesTable
   workspace_members: WorkspaceMembersTable
   projects: ProjectsTable

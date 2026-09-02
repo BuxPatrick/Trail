@@ -1,32 +1,31 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
-import { testDb, resetDb } from './helpers/db.js'
-import { buildApp } from '../src/app.js'
+import { fakeVerifyToken } from './helpers/auth.js'
+
+vi.mock('../src/auth/verify.js', () => ({ verifyToken: fakeVerifyToken }))
+
+const { testDb, resetDb } = await import('./helpers/db.js')
+const { buildApp } = await import('../src/app.js')
+const { PATRICK, AMA } = await import('./helpers/auth.js')
 
 const app = buildApp(testDb)
-const INPUT = {
-  email: 'patrick@example.com',
-  password: 'correct horse battery',
-  displayName: 'Patrick',
-}
-const OTHER = {
-  email: 'ama@example.com',
-  password: 'correct horse battery',
-  displayName: 'Ama',
-}
+
+/** A supertest caller that carries a Neon bearer token on every request. */
+const as = (token: string) => ({
+  get: (u: string) => request(app).get(u).set('Authorization', `Bearer ${token}`),
+  post: (u: string) => request(app).post(u).set('Authorization', `Bearer ${token}`),
+  patch: (u: string) => request(app).patch(u).set('Authorization', `Bearer ${token}`),
+  delete: (u: string) => request(app).delete(u).set('Authorization', `Bearer ${token}`),
+})
 
 async function withProject() {
-  const agent = request.agent(app)
-  await agent.post('/api/auth/signup').send(INPUT)
+  const agent = as(PATRICK)
   const p = await agent.post('/api/projects').send({ name: 'Mira', key: 'MIRA' })
   return { agent, projectId: p.body.id as string }
 }
 
-async function stranger() {
-  const agent = request.agent(app)
-  await agent.post('/api/auth/signup').send(OTHER)
-  return agent
-}
+/** A second, unrelated user - used to prove invisible resources return 404. */
+const stranger = async () => as(AMA)
 
 beforeEach(async () => { await resetDb() })
 

@@ -16,6 +16,6 @@ export async function resetDb(): Promise<void> {
   // One statement, so FK order does not matter and it stays fast.
   await sql`
     TRUNCATE tickets, epics, projects, workspace_members, workspaces,
-             sessions, users RESTART IDENTITY CASCADE
+             users RESTART IDENTITY CASCADE
   `.execute(testDb)
 }

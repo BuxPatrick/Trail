@@ -12,17 +12,33 @@ async function columns(table: string) {
   return r.rows.map(x => x.column_name).sort()
 }
 
-describe('001_initial', () => {
+describe('schema', () => {
   it('creates every INC 1 table', async () => {
     const r = await sql<{ table_name: string }>`
       SELECT table_name FROM information_schema.tables
        WHERE table_schema = 'public'
     `.execute(testDb)
     const names = r.rows.map(x => x.table_name)
-    for (const t of ['users', 'sessions', 'workspaces', 'workspace_members',
+    for (const t of ['users', 'workspaces', 'workspace_members',
                      'projects', 'epics', 'tickets']) {
       expect(names).toContain(t)
     }
+    // Dropped in 002: Neon Auth issues JWTs, so there is no session to store.
+    expect(names).not.toContain('sessions')
+  })
+
+  it('identifies users by their Neon subject, and stores no password', async () => {
+    const cols = await columns('users')
+    expect(cols).toContain('neon_user_id')
+    expect(cols).not.toContain('password_hash')
+  })
+
+  it('refuses two users with the same Neon subject', async () => {
+    await sql`INSERT INTO users (email, neon_user_id, display_name)
+              VALUES ('a@example.com', 'neon-same', 'A')`.execute(testDb)
+    await expect(sql`INSERT INTO users (email, neon_user_id, display_name)
+              VALUES ('b@example.com', 'neon-same', 'B')`.execute(testDb))
+      .rejects.toThrow()
   })
 
   it('gives tickets the columns the spec requires', async () => {
@@ -41,8 +57,8 @@ describe('001_initial', () => {
 
   it('allows only one personal workspace per user', async () => {
     const u = await sql<{ id: string }>`
-      INSERT INTO users (email, password_hash, display_name)
-      VALUES ('dup@example.com', 'h', 'Dup') RETURNING id
+      INSERT INTO users (email, neon_user_id, display_name)
+      VALUES ('dup@example.com', 'neon-dup', 'Dup') RETURNING id
     `.execute(testDb)
     const uid = u.rows[0]!.id
     await sql`INSERT INTO workspaces (name, kind, owner_id)
@@ -54,8 +70,8 @@ describe('001_initial', () => {
 
   it('allows many TEAM workspaces for the same owner', async () => {
     const u = await sql<{ id: string }>`
-      INSERT INTO users (email, password_hash, display_name)
-      VALUES ('teams@example.com', 'h', 'T') RETURNING id
+      INSERT INTO users (email, neon_user_id, display_name)
+      VALUES ('teams@example.com', 'neon-teams', 'T') RETURNING id
     `.execute(testDb)
     const uid = u.rows[0]!.id
     await sql`INSERT INTO workspaces (name, kind, owner_id)
@@ -67,8 +83,8 @@ describe('001_initial', () => {
 
   it('SET NULL on epic delete keeps the tickets alive', async () => {
     const u = await sql<{ id: string }>`
-      INSERT INTO users (email, password_hash, display_name)
-      VALUES ('epics@example.com', 'h', 'E') RETURNING id`.execute(testDb)
+      INSERT INTO users (email, neon_user_id, display_name)
+      VALUES ('epics@example.com', 'neon-epics', 'E') RETURNING id`.execute(testDb)
     const uid = u.rows[0]!.id
     const w = await sql<{ id: string }>`
       INSERT INTO workspaces (name, kind, owner_id)
