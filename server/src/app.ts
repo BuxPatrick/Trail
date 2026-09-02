@@ -5,6 +5,7 @@ import type { Kysely } from 'kysely'
 import type { Database } from './db/types.js'
 import { errorMiddleware } from './errors.js'
 import { authRoutes, meRoute } from './routes/auth.routes.js'
+import { projectRoutes } from './routes/project.routes.js'
 import { config } from './config.js'
 
 /**
@@ -22,6 +23,7 @@ export function buildApp(db: Kysely<Database>): Express {
 
   app.use('/api/auth', authRoutes(db))
   app.use('/api', meRoute(db))
+  app.use('/api/projects', projectRoutes(db))
 
   app.use(errorMiddleware)
   return app
