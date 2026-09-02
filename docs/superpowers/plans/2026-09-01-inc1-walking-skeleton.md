@@ -478,6 +478,7 @@ Expected: FAIL — modules not found.
     "argon2": "^0.41.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "kysely": "^0.27.5",
     "pg": "^8.13.1",
@@ -881,9 +882,11 @@ Expected: FAIL — helper module not found.
 
 - [ ] **Step 3: Implement config and the Kysely instance**
 
-`server/src/config.ts`:
+`server/src/config.ts` — `dotenv/config` must be imported first, or `process.env`
+is empty when Vitest runs the integration tests:
 
 ```ts
+import 'dotenv/config'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -1190,7 +1193,7 @@ Add to `.env` (gitignored, unlike `.env.example`):
 - [ ] **Step 6: Run the tests and confirm they pass**
 
 Run: `npx vitest run server/tests/schema.test.ts`
-Expected: PASS, 5 tests.
+Expected: PASS, 6 tests.
 
 - [ ] **Step 7: Commit**
 
