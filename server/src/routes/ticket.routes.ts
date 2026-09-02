@@ -4,7 +4,9 @@ import { createTicketSchema, updateTicketSchema } from '@mira/shared'
 import type { Database } from '../db/types.js'
 import { AppError } from '../errors.js'
 import { requireUser } from '../auth/middleware.js'
-import { createTicket, listTickets, updateTicket } from '../services/ticket.service.js'
+import {
+  createTicket, deleteTicket, getTicket, listTickets, updateTicket,
+} from '../services/ticket.service.js'
 
 const invalid = (msg: string) => new AppError('VALIDATION_FAILED', msg, 400)
 
@@ -47,6 +49,19 @@ export function ticketRoutes(db: Kysely<Database>): Router {
         throw invalid(parsed.error.issues[0]?.message ?? 'Invalid input.')
       }
       res.json(await updateTicket(db, req.userId!, req.params.id!, parsed.data))
+    } catch (err) { next(err) }
+  })
+
+  r.get('/:id', async (req, res, next) => {
+    try {
+      res.json(await getTicket(db, req.userId!, req.params.id!))
+    } catch (err) { next(err) }
+  })
+
+  r.delete('/:id', async (req, res, next) => {
+    try {
+      await deleteTicket(db, req.userId!, req.params.id!)
+      res.status(204).end()
     } catch (err) { next(err) }
   })
 

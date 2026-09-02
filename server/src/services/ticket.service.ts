@@ -107,12 +107,8 @@ export async function listTickets(
   return rows.map(r => toView(r as Row, project.key))
 }
 
-export async function updateTicket(
-  db: Kysely<Database>,
-  userId: string,
-  ticketId: string,
-  input: UpdateTicketInput,
-): Promise<TicketView> {
+/** Resolves a ticket plus its project key and the caller's context, or 404. */
+async function locate(db: Kysely<Database>, userId: string, ticketId: string) {
   const owning = await db.selectFrom('tickets')
     .innerJoin('projects', 'projects.id', 'tickets.project_id')
     .select(['tickets.project_id', 'tickets.assignee_id', 'projects.key'])
@@ -123,6 +119,37 @@ export async function updateTicket(
   const ctx = await projectContext(db, userId, owning.project_id)
   // Invisible and missing produce the same 404. See spec section 7.
   if (!ctx || !canView(ctx)) throw NOT_FOUND()
+  return { owning, ctx }
+}
+
+export async function getTicket(
+  db: Kysely<Database>, userId: string, ticketId: string,
+): Promise<TicketView> {
+  const { owning } = await locate(db, userId, ticketId)
+  const row = await db.selectFrom('tickets')
+    .select(['id', 'number', 'title', 'description', 'status', 'priority',
+             'assignee_id', 'reporter_id', 'created_at'])
+    .where('id', '=', ticketId).executeTakeFirstOrThrow()
+  return toView(row as Row, owning.key)
+}
+
+export async function deleteTicket(
+  db: Kysely<Database>, userId: string, ticketId: string,
+): Promise<void> {
+  const { owning, ctx } = await locate(db, userId, ticketId)
+  if (!canEditTicket(ctx, { assigneeId: owning.assignee_id })) {
+    throw new AppError('FORBIDDEN', 'You cannot delete that ticket.', 403)
+  }
+  await db.deleteFrom('tickets').where('id', '=', ticketId).execute()
+}
+
+export async function updateTicket(
+  db: Kysely<Database>,
+  userId: string,
+  ticketId: string,
+  input: UpdateTicketInput,
+): Promise<TicketView> {
+  const { owning, ctx } = await locate(db, userId, ticketId)
   if (!canEditTicket(ctx, { assigneeId: owning.assignee_id })) {
     throw new AppError('FORBIDDEN', 'You cannot edit that ticket.', 403)
   }

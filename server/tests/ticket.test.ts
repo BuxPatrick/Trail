@@ -139,3 +139,54 @@ describe('GET /api/projects/:id/tickets', () => {
     expect((await other.get(`/api/projects/${projectId}/tickets`)).status).toBe(404)
   })
 })
+
+describe('GET /api/tickets/:id', () => {
+  it('returns one ticket with its key', async () => {
+    const { agent, projectId } = await withProject()
+    const t = await agent.post(`/api/projects/${projectId}/tickets`)
+      .send({ title: 'Set up the database', description: 'Postgres + Kysely' })
+    const res = await agent.get(`/api/tickets/${t.body.id}`)
+    expect(res.status).toBe(200)
+    expect(res.body.key).toBe('MIRA-1')
+    expect(res.body.description).toBe('Postgres + Kysely')
+  })
+
+  it('returns 404 for a ticket the caller cannot see', async () => {
+    const { agent, projectId } = await withProject()
+    const t = await agent.post(`/api/projects/${projectId}/tickets`).send({ title: 'X' })
+    const other = await stranger()
+    expect((await other.get(`/api/tickets/${t.body.id}`)).status).toBe(404)
+  })
+
+  it('returns 404 for an id that does not exist', async () => {
+    const { agent } = await withProject()
+    expect((await agent.get(
+      '/api/tickets/00000000-0000-0000-0000-000000000000')).status).toBe(404)
+  })
+})
+
+describe('DELETE /api/tickets/:id', () => {
+  it('deletes the ticket', async () => {
+    const { agent, projectId } = await withProject()
+    const t = await agent.post(`/api/projects/${projectId}/tickets`).send({ title: 'X' })
+    expect((await agent.delete(`/api/tickets/${t.body.id}`)).status).toBe(204)
+    expect((await agent.get(`/api/projects/${projectId}/tickets`)).body).toEqual([])
+  })
+
+  it('does NOT reuse the deleted number for the next ticket', async () => {
+    const { agent, projectId } = await withProject()
+    const t = await agent.post(`/api/projects/${projectId}/tickets`).send({ title: 'One' })
+    await agent.delete(`/api/tickets/${t.body.id}`)
+    const next = await agent.post(`/api/projects/${projectId}/tickets`)
+      .send({ title: 'Two' })
+    // The counter never rewinds: MIRA-1 must not come to mean a second thing.
+    expect(next.body.key).toBe('MIRA-2')
+  })
+
+  it('returns 404 for a ticket the caller cannot see', async () => {
+    const { agent, projectId } = await withProject()
+    const t = await agent.post(`/api/projects/${projectId}/tickets`).send({ title: 'X' })
+    const other = await stranger()
+    expect((await other.delete(`/api/tickets/${t.body.id}`)).status).toBe(404)
+  })
+})
